@@ -28,30 +28,18 @@ app.get("/", (req, res) => {
 app.route('/api/user')
 .post((req, res) => {
     let user = req.body;
-    user_id++;
-
-    if(user.roles != undefined) {
-      if(!Array.isArray(user.roles)) {
-        res.status(409).json({
-          status: 409,
-          result: "Roles was not an array",
-        });
-
-        return false;
-      }
-    } else {
-      user.roles = [];
-    }
 
     if(!checkEmailDuplicate(user.emailAdress)) {
+        user_id++;
         user = {
             id: user_id,
             firstName: user.firstName,
             lastName: user.lastName,
             street: user.street,
-            password: user.password,
+            city: user.city,
             emailAdress: user.emailAdress,
             phoneNumber: user.phoneNumber,
+            password: user.password,
             roles: user.roles
         };
     
@@ -109,30 +97,17 @@ app.route('/api/user/:id')
     let userIndex = database.findIndex((obj) => obj.id == userId);
 
     if(userIndex > -1) {
-      if(newUserInfo.roles != undefined) {
-        if(!Array.isArray(newUserInfo.roles)) {
-          res.status(409).json({
-            status: 409,
-            result: "Roles was not an array",
-          });
-  
-          return false;
-        }
-      } else {
-        user.roles = [];
-      }
-
-      database[userIndex] = {
-          id: parseInt(userId),
-          firstName: newUserInfo.firstName,
-          lastName: newUserInfo.lastName,
-          street: newUserInfo.street,
-          city: newUserInfo.city,
-          password: newUserInfo.password,
-          emailAdress: newUserInfo.emailAdress,
-          phoneNumber: newUserInfo.phoneNumber,
-          roles: newUserInfo.roles
-      };
+        database[userIndex] = {
+            id: parseInt(userId),
+            firstName: newUserInfo.firstName,
+            lastName: newUserInfo.lastName,
+            street: newUserInfo.street,
+            city: newUserInfo.city,
+            password: newUserInfo.password,
+            emailAdress: newUserInfo.emailAdress,
+            phoneNumber: newUserInfo.phoneNumber,
+            roles: newUserInfo.roles
+        };
 
       res.status(200).json({
           status: 200,
