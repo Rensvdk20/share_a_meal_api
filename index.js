@@ -30,6 +30,19 @@ app.route('/api/user')
     let user = req.body;
     user_id++;
 
+    if(user.roles != undefined) {
+      if(!Array.isArray(user.roles)) {
+        res.status(409).json({
+          status: 409,
+          result: "Roles was not an array",
+        });
+
+        return false;
+      }
+    } else {
+      user.roles = [];
+    }
+
     if(!checkEmailDuplicate(user.emailAdress)) {
         user = {
             id: user_id,
@@ -37,7 +50,9 @@ app.route('/api/user')
             lastName: user.lastName,
             street: user.street,
             password: user.password,
-            emailAdress: user.emailAdress
+            emailAdress: user.emailAdress,
+            phoneNumber: user.phoneNumber,
+            roles: user.roles
         };
     
         database.push(user);
@@ -91,23 +106,38 @@ app.route('/api/user/:id')
 .put((req, res) => {
     let newUserInfo = req.body;
     const userId = req.params.id;
-    let userIndex = database.findIndex((obj => obj.id == userId));
+    let userIndex = database.findIndex((obj) => obj.id == userId);
 
     if(userIndex > -1) {
-        database[userIndex] = {
-            id: parseInt(userId),
-            firstName: newUserInfo.firstName,
-            lastName: newUserInfo.lastName,
-            street: newUserInfo.street,
-            city: newUserInfo.city,
-            password: newUserInfo.password,
-            emailAdress: newUserInfo.emailAdress
-        };
+      if(newUserInfo.roles != undefined) {
+        if(!Array.isArray(newUserInfo.roles)) {
+          res.status(409).json({
+            status: 409,
+            result: "Roles was not an array",
+          });
+  
+          return false;
+        }
+      } else {
+        user.roles = [];
+      }
 
-        res.status(200).json({
-            status: 200,
-            result: database[userIndex]
-        });
+      database[userIndex] = {
+          id: parseInt(userId),
+          firstName: newUserInfo.firstName,
+          lastName: newUserInfo.lastName,
+          street: newUserInfo.street,
+          city: newUserInfo.city,
+          password: newUserInfo.password,
+          emailAdress: newUserInfo.emailAdress,
+          phoneNumber: newUserInfo.phoneNumber,
+          roles: newUserInfo.roles
+      };
+
+      res.status(200).json({
+          status: 200,
+          result: database[userIndex]
+      });
     } else {
         res.status(404).json({
             status: 404,
