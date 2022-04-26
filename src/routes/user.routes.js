@@ -5,10 +5,10 @@ const userController = require('../controllers/user.controller');
 //########## Users ###############
 
 //Register user
-router.post('/api/user', userController.validateUser, userController.addUser);
+router.post("/api/user", userController.validateUser, userController.addUser);
 
 //Get all users
-router.get('/api/user', userController.getAllUsers);
+router.get("/api/user", userController.getAllUsers);
 
 //Request current user profile
 router.get("/api/user/profile", userController.getUserProfile)

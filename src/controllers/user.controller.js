@@ -8,14 +8,14 @@ let controller = {
         let user = req.body;
         let {firstName, lastName, street, city, isActive, emailAdress, phoneNumber, password} = user;
         try {
-            assert(typeof firstName === 'string', 'Title must be a string');
-            assert(typeof lastName === 'string', 'lastName must be a string');
-            assert(typeof street === 'string', 'street must be a string');
-            assert(typeof city === 'string', 'city must be a string');
-            assert(typeof isActive === 'boolean', 'isActive must be a boolean');
-            assert(typeof emailAdress === 'string', 'emailAddress must be a string');
-            assert(typeof phoneNumber === 'string', 'phoneNumber must be a string');
-            assert(typeof password === 'string', 'password must a string');
+            assert(typeof firstName === 'string', 'Firstname must be a string');
+            assert(typeof lastName === 'string', 'LastName must be a string');
+            assert(typeof street === 'string', 'Street must be a string');
+            assert(typeof city === 'string', 'City must be a string');
+            assert(typeof isActive === 'boolean', 'IsActive must be a boolean');
+            assert(typeof emailAdress === 'string', 'EmailAddress must be a string');
+            assert(typeof phoneNumber === 'string', 'PhoneNumber must be a string');
+            assert(typeof password === 'string', 'Password must a string');
 
             next();
         } catch (err) {
@@ -25,7 +25,6 @@ let controller = {
             }
 
             console.log(error);
-
             next(error);
         }
     },
