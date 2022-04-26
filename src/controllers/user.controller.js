@@ -1,7 +1,31 @@
+const assert = require('assert');
+
 let database = [];
 let user_id = 0;
 
 let controller = {
+    validateUser: (req, res, next) => {
+        let user = req.body;
+        let {firstName, lastName, street, city, isActive, emailAdress, phoneNumber, password} = user;
+        try {
+            assert(typeof firstName === 'string', 'Title must be a string');
+            assert(typeof lastName === 'string', 'lastName must be a string');
+            assert(typeof street === 'string', 'street must be a string');
+            assert(typeof city === 'string', 'city must be a string');
+            assert(typeof isActive === 'boolean', 'isActive must be a boolean');
+            assert(typeof emailAdress === 'string', 'emailAddress must be a string');
+            assert(typeof phoneNumber === 'string', 'phoneNumber must be a string');
+            assert(typeof password === 'string', 'password must a string');
+            
+            next();
+        } catch (err) {
+            console.log(err);
+            res.status(400).json({
+                status: 400,
+                result: err.message
+            });
+        }
+    },
     addUser: (req, res) => {
         let user = req.body;
 
@@ -13,10 +37,10 @@ let controller = {
                 lastName: user.lastName,
                 street: user.street,
                 city: user.city,
+                isActive: user.isActive,
                 emailAdress: user.emailAdress,
                 phoneNumber: user.phoneNumber,
-                password: user.password,
-                roles: user.roles
+                password: user.password
             };
         
             database.push(user);
@@ -71,10 +95,10 @@ let controller = {
                 lastName: newUserInfo.lastName,
                 street: newUserInfo.street,
                 city: newUserInfo.city,
-                password: newUserInfo.password,
+                isActive: newUserInfo.isActive,
                 emailAdress: newUserInfo.emailAdress,
                 phoneNumber: newUserInfo.phoneNumber,
-                roles: newUserInfo.roles
+                password: newUserInfo.password
             };
 
             res.status(200).json({
