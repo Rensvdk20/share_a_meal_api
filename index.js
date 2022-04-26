@@ -14,7 +14,7 @@ app.all("*", (req, res, next) => {
     next();
 });
 
-app.use(router)
+app.use(router);
 
 app.get("/", (req, res) => {
     res.status(200).json({
@@ -30,13 +30,6 @@ app.all("*", (req, res) => {
         result: "End-point not found",
     });
 });
-
-function checkEmailDuplicate(emailAdress) {
-    const filteredArray = database.filter((o) => o.emailAdress === emailAdress);
-    if(filteredArray.length > 0) {
-        return true;
-    } return false;
-}
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
