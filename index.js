@@ -6,8 +6,7 @@ const bodyParser = require("body-parser");
 const { get } = require("express/lib/response");
 app.use(bodyParser.json());
 
-let database = [];
-let user_id = 0;
+const router = require("./src/routes/user.routes");
 
 app.all("*", (req, res, next) => {
     const method = req.method;
@@ -15,129 +14,13 @@ app.all("*", (req, res, next) => {
     next();
 });
 
+app.use(router)
+
 app.get("/", (req, res) => {
     res.status(200).json({
         status: 200,
         result: "Share A Meal API",
     });
-});
-
-//########## Users ###############
-
-//Register user
-app.route('/api/user')
-.post((req, res) => {
-    let user = req.body;
-
-    if(!checkEmailDuplicate(user.emailAdress)) {
-        user_id++;
-        user = {
-            id: user_id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            street: user.street,
-            city: user.city,
-            emailAdress: user.emailAdress,
-            phoneNumber: user.phoneNumber,
-            password: user.password,
-            roles: user.roles
-        };
-    
-        database.push(user);
-        res.status(201).json({
-            status: 201,
-            result: user
-        });
-    } else {
-        res.status(409).json({
-            status: 409,
-            result: "Email already exists",
-        });
-    }
-})
-
-//Get all users
-.get((req, res) => {
-    res.status(200).json({
-        status: 200,
-        result: database
-    });
-});
-
-//Request current user profile
-app.get("/api/user/profile", (req, res) => {
-    res.status(501).json({
-        status: 501,
-        result: "This endpoint is not yet implemented"
-    });
-});
-
-//Get user by id
-app.route('/api/user/:id')
-.get((req, res) => {
-    const userId = req.params.id;
-    let user = database.find((item) => item.id == userId);
-    if (user) {
-        res.status(200).json({
-            status: 200,
-            result: user,
-        });
-    } else {
-        res.status(404).json({
-            status: 404,
-            result: "User not found"
-        });
-    }
-})
-
-//Update user
-.put((req, res) => {
-    let newUserInfo = req.body;
-    const userId = req.params.id;
-    let userIndex = database.findIndex((obj) => obj.id == userId);
-
-    if(userIndex > -1) {
-        database[userIndex] = {
-            id: parseInt(userId),
-            firstName: newUserInfo.firstName,
-            lastName: newUserInfo.lastName,
-            street: newUserInfo.street,
-            city: newUserInfo.city,
-            password: newUserInfo.password,
-            emailAdress: newUserInfo.emailAdress,
-            phoneNumber: newUserInfo.phoneNumber,
-            roles: newUserInfo.roles
-        };
-
-      res.status(200).json({
-          status: 200,
-          result: database[userIndex]
-      });
-    } else {
-        res.status(404).json({
-            status: 404,
-            result: "User not found"
-        });
-    }
-})
-
-//Delete user
-.delete((req, res) => {
-    const userId = req.params.id;
-    let userIndex = database.findIndex((obj => obj.id == userId));
-    if(userIndex > -1) {
-        database.splice(userIndex, 1);
-
-        res.status(202).json({
-            status: 202,
-            result: "Success"
-        });
-    } else {
-        res.status(404).json({
-            status: 404,
-            result: "User not found"
-        });
-    }
 });
 
 //End-point not found
