@@ -5,21 +5,21 @@ const userController = require('../controllers/user.controller');
 //########## Users ###############
 
 //Register user
-router.post("/api/user", userController.validateUser, userController.addUser);
+router.post("/user", userController.validateUser, userController.addUser);
 
 //Get all users
-router.get("/api/user", userController.getAllUsers);
+router.get("/user", userController.getAllUsers);
 
 //Request current user profile
-router.get("/api/user/profile", userController.getUserProfile)
+router.get("/user/profile", userController.getUserProfile)
 
 //Get user by id
-router.get("/api/user/:id", userController.getUserById)
+router.get("/user/:id", userController.getUserById)
 
 //Update user
-router.put("/api/user/:id", userController.updateUser);
+router.put("/user/:id", userController.validateUser, userController.updateUser);
 
 //Delete user
-router.delete("/api/user/:id", userController.deleteUser);
+router.delete("/user/:id", userController.deleteUser);
 
 module.exports = router;

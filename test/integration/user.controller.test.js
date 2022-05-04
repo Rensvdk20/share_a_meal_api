@@ -1,17 +1,16 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const server = require('../../index');
-let database = [];
 
 chai.should();
 chai.use(chaiHttp);
 
 describe('Manage users api/user', () => {
     describe('UC-201 add movies', () => {
-        beforeEach((done) => {
-            database = [];
-            done();
-        });
+        // beforeEach((done) => {
+        //     database = [];
+        //     done();
+        // });
 
         it('When a required input is missing, a valid error should be returned', (done) => {
             chai.request(server).post('/api/user').send({

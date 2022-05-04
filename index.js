@@ -15,7 +15,7 @@ app.all("*", (req, res, next) => {
     next();
 });
 
-app.use(router);
+app.use('/api', router);
 
 app.get("/", (req, res) => {
     res.status(200).json({
@@ -34,11 +34,12 @@ app.all("*", (req, res) => {
 
 //Error handler
 app.use((err, req, res, next) => {
+    console.log("Error");
     res.status(err.status).json(err);
 });
 
 app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
+    console.log(`Share a meal api listening on port ${port}`);
 });
 
 module.exports = app;

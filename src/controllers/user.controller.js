@@ -13,9 +13,11 @@ let controller = {
             assert(typeof lastName === 'string', 'LastName must be a string');
             assert(typeof street === 'string', 'Street must be a string');
             assert(typeof city === 'string', 'City must be a string');
-            assert(typeof isActive === 'boolean', 'IsActive must be a boolean');
+            //Not required
+            if(isActive) { assert(typeof isActive === 'boolean', 'IsActive must be a boolean'); }
             assert(typeof emailAdress === 'string', 'EmailAddress must be a string');
-            assert(typeof phoneNumber === 'string', 'PhoneNumber must be a string');
+            //Not required
+            if(phoneNumber) { assert(typeof phoneNumber === 'string', 'PhoneNumber must be a string'); }
             assert(typeof password === 'string', 'Password must a string');
 
             next();
@@ -31,52 +33,68 @@ let controller = {
     },
     addUser: (req, res) => {
         let user = req.body;
-
-        if(!checkEmailDuplicate(user.emailAdress)) {
-            user_id++;
-            user = {
-                id: user_id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                street: user.street,
-                city: user.city,
-                isActive: user.isActive,
-                emailAdress: user.emailAdress,
-                phoneNumber: user.phoneNumber,
-                password: user.password
-            };
-        
-            database.push(user);
-            res.status(201).json({
-                status: 201,
-                result: user
-            });
-        } else {
-            res.status(409).json({
-                status: 409,
-                result: "Email already exists",
-            });
-        }
-    },
-    getAllUsers: (req, res) => {
-        // res.status(200).json({
-        //     status: 200,
-        //     result: database
-        // });
-        dbconnection.getConnection(function(err, connection) {
-            if (err) throw err; // not connected!
+        console.log(user);
+        dbconnection.getConnection(function(connError, conn) {
+            //Not connected
+            if (connError) {
+                res.status(502).json({
+                    status: 502,
+                    result: "Couldn't connect to database"
+                }); return;
+            }
             
-            // Use the connection
-            connection.query('SELECT * FROM user', function (error, results, fields) {
-
+            //Insert the user object into the database
+            conn.query(`INSERT INTO user SET ?`, user, function (dbError, results, fields) {
                 // When done with the connection, release it.
-                connection.release();
+                conn.release();
                 
                 // Handle error after the release.
-                if (error) throw error;
+                console.log('Results =', results);
+                //Check if email address is already used
+                if(dbError.errno == 1062) {
+                    res.status(400).json({
+                        status: 400,
+                        result: "Email is already used"
+                    });
+                } else if(dbError) {
+                    console.log(dbError);
+                    res.status(500).json({
+                        status: 500,
+                        result: "Error"
+                    });
+                } else {
+                    res.status(201).json({
+                        status: 201,
+                        result: results
+                    });
+                }
+            });
+        });
+    },
+    getAllUsers: (req, res) => {
+        dbconnection.getConnection(function(connError, conn) {
+            //Not connected
+            if (connError) {
+                res.status(502).json({
+                    status: 502,
+                    result: "Couldn't connect to database"
+                }); return;
+            }
+            
+            conn.query('SELECT * FROM user', function (dbError, results, fields) {
+                // When done with the connection, release it.
+                conn.release();
                 
-                // Don't use the connection here, it has been returned to the pool.
-                console.log('Results = ', results.length);
+                // Handle error after the release.
+                if (dbError) {
+                    console.log(dbError);
+                    res.status(500).json({
+                        status: 500,
+                        result: "Error"
+                    }); return;
+                }
+                
+                console.log('Results =', results);
                 res.status(200).json({
                     status: 200,
                     result: results
@@ -92,74 +110,123 @@ let controller = {
     },
     getUserById: (req, res) => {
         const userId = req.params.id;
-        let user = database.find((item) => item.id == userId);
-        if (user) {
-            res.status(200).json({
-                status: 200,
-                result: user,
+        dbconnection.getConnection(function(connError, conn) {
+            //Not connected
+            if (connError) {
+                res.status(502).json({
+                    status: 502,
+                    result: "Couldn't connect to database"
+                }); return;
+            }
+            
+            conn.query('SELECT * FROM user WHERE id = ' + userId, function (dbError, results, fields) {
+                // When done with the connection, release it.
+                conn.release();
+                
+                // Handle error after the release.
+                if (dbError) {
+                    console.log(dbError);
+                    res.status(500).json({
+                        status: 500,
+                        result: "Error"
+                    }); return;
+                }
+                
+                console.log('Results =', results[0]);
+                if(results[0]) {
+                    res.status(200).json({
+                        status: 200,
+                        result: results[0]
+                    });
+                } else {
+                    res.status(404).json({
+                        status: 404,
+                        result: "User not found"
+                    });
+                }
             });
-        } else {
-            res.status(404).json({
-                status: 404,
-                result: "User not found"
-            });
-        }
+        });
     },
     updateUser: (req, res) => {
-        let newUserInfo = req.body;
-    const userId = req.params.id;
-    let userIndex = database.findIndex((obj) => obj.id == userId);
-
-    if(userIndex > -1) {
-        if(!checkEmailDuplicate(user.emailAdress)) {
-            database[userIndex] = {
-                id: parseInt(userId),
-                firstName: newUserInfo.firstName,
-                lastName: newUserInfo.lastName,
-                street: newUserInfo.street,
-                city: newUserInfo.city,
-                isActive: newUserInfo.isActive,
-                emailAdress: newUserInfo.emailAdress,
-                phoneNumber: newUserInfo.phoneNumber,
-                password: newUserInfo.password
-            };
-
-            res.status(200).json({
-                status: 200,
-                result: database[userIndex]
+        const newUserInfo = req.body;
+        const userId = req.params.id;
+        dbconnection.getConnection(function(connError, conn) {
+            //Not connected
+            if (connError) {
+                res.status(502).json({
+                    status: 502,
+                    result: "Couldn't connect to database"
+                }); return;
+            }
+            
+            conn.query('UPDATE user SET ? WHERE id = ?', [newUserInfo, userId], function (dbError, results, fields) {
+                // When done with the connection, release it.
+                conn.release();
+                
+                // Handle error after the release.
+                console.log(results);
+                if(results.affectedRows > 0) {
+                    console.log('Results =', results);
+                    res.status(200).json({
+                        status: 200,
+                        result: `User: ${userId} successfully updated`
+                    });
+                } else {
+                    if(dbError == null) {
+                        res.status(404).json({
+                            status: 404,
+                            result: "User not found"
+                        });
+                    } else {
+                        console.log(dbError);
+                        res.status(500).json({
+                            status: 500,
+                            result: "Error"
+                        }); return;
+                    }
+                }
             });
-        }
-        } else {
-            res.status(404).json({
-                status: 404,
-                result: "User not found"
-            });
-        }
+        });
     },
     deleteUser: (req, res) => {
         const userId = req.params.id;
-        let userIndex = database.findIndex((obj => obj.id == userId));
-        if(userIndex > -1) {
-            database.splice(userIndex, 1);
-
-            res.status(202).json({
-                status: 202,
-                result: "Success"
+        dbconnection.getConnection(function(connError, conn) {
+            //Not connected
+            if (connError) {
+                console.log(dbError);
+                res.status(502).json({
+                    status: 502,
+                    result: "Couldn't connect to database"
+                }); return;
+            }
+            
+            conn.query('DELETE FROM user WHERE id = ?', userId, function (dbError, results, fields) {
+                // When done with the connection, release it.
+                conn.release();
+                
+                // Handle error after the release.
+                if(dbError) {
+                    res.status(500).json({
+                        status: 500,
+                        result: "Error"
+                    }); return;
+                }
+                
+                console.log('Results =', results);
+                if(results.affectedRows > 0) {
+                    res.status(200).json({
+                        status: 200,
+                        result: `User: ${userId} successfully deleted`
+                    });
+                } else {
+                    res.status(404).json({
+                        status: 404,
+                        result: "User not found"
+                    });
+                }
             });
-        } else {
-            res.status(404).json({
-                status: 404,
-                result: "User not found"
-            });
-        }
+        });
     }
-}
-
-function checkEmailDuplicate(emailAdress) {
-    const filteredArray = database.filter((o) => o.emailAdress === emailAdress);
-    if(filteredArray.length > 0) {
-        return true;
-    } return false;
 }
 
 module.exports = controller;
