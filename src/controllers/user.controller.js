@@ -1,14 +1,15 @@
 const assert = require('assert');
 const dbconnection = require('../../database/dbconnection');
 
-let database = [];
-let user_id = 0;
-
 let controller = {
-    validateUser: (req, res, next) => {
+    validateUserPost: (req, res, next) => {
         let user = req.body;
         let {firstName, lastName, street, city, isActive, emailAdress, phoneNumber, password} = user;
         try {
+            //Check if the object contains at least one valid field
+            assert(Object.keys(user).length > 0, 'You have to send at least one valid field');
+            
+            //Check if each field has the correct type
             assert(typeof firstName === 'string', 'Firstname must be a string');
             assert(typeof lastName === 'string', 'LastName must be a string');
             assert(typeof street === 'string', 'Street must be a string');
@@ -31,9 +32,35 @@ let controller = {
             next(error);
         }
     },
+    validateUserUpdate: (req, res, next) => {
+        let updatedUserBody = req.body;
+        let {firstName, lastName, street, city, isActive, emailAdress, phoneNumber, password} = updatedUserBody;
+        try {
+            //Check if the object contains at least one valid field
+            assert(Object.keys(updatedUserBody).length > 0, 'You have to send at least one valid field');
+            
+            //Check the field only if it is send with the body
+            if(firstName) {assert(typeof firstName === 'string', 'Firstname must be a string'); }
+            if(lastName) {assert(typeof lastName === 'string', 'LastName must be a string'); }
+            if(street) {assert(typeof street === 'string', 'Street must be a string'); }
+            if(city) {assert(typeof city === 'string', 'City must be a string'); }
+            if(isActive) { assert(typeof isActive === 'boolean', 'IsActive must be a boolean'); }
+            if(emailAdress) { assert(typeof emailAdress === 'string', 'EmailAddress must be a string');; }
+            if(phoneNumber) { assert(typeof phoneNumber === 'string', 'PhoneNumber must be a string'); }
+            if(password) { assert(typeof password === 'string', 'Password must a string'); }
+
+            next();
+        } catch (err) {
+            const error = {
+                status: 400,
+                result: err.message
+            }
+
+            next(error);
+        }
+    },
     addUser: (req, res) => {
         let user = req.body;
-        console.log(user);
         dbconnection.getConnection(function(connError, conn) {
             //Not connected
             if (connError) {
@@ -48,24 +75,26 @@ let controller = {
                 // When done with the connection, release it.
                 conn.release();
                 
-                // Handle error after the release.
-                console.log('Results =', results);
                 //Check if email address is already used
-                if(dbError.errno == 1062) {
-                    res.status(400).json({
-                        status: 400,
-                        result: "Email is already used"
-                    });
-                } else if(dbError) {
+
+                // Handle error after the release.
+                if(dbError) {
                     console.log(dbError);
-                    res.status(500).json({
-                        status: 500,
-                        result: "Error"
-                    });
+                    if(dbError.errno == 1062) {
+                        res.status(400).json({
+                            status: 400,
+                            result: "Email is already used"
+                        });
+                    } else {
+                        res.status(500).json({
+                            status: 500,
+                            result: "Error"
+                        });
+                    }
                 } else {
                     res.status(201).json({
                         status: 201,
-                        result: results
+                        result: "User successfully added"
                     });
                 }
             });
@@ -94,7 +123,6 @@ let controller = {
                     }); return;
                 }
                 
-                console.log('Results =', results);
                 res.status(200).json({
                     status: 200,
                     result: results
@@ -132,11 +160,11 @@ let controller = {
                     }); return;
                 }
                 
-                console.log('Results =', results[0]);
-                if(results[0]) {
+                const result = results[0];
+                if(result) {
                     res.status(200).json({
                         status: 200,
-                        result: results[0]
+                        result: result
                     });
                 } else {
                     res.status(404).json({
@@ -164,9 +192,7 @@ let controller = {
                 conn.release();
                 
                 // Handle error after the release.
-                console.log(results);
                 if(results.affectedRows > 0) {
-                    console.log('Results =', results);
                     res.status(200).json({
                         status: 200,
                         result: `User: ${userId} successfully updated`
@@ -182,7 +208,7 @@ let controller = {
                         res.status(500).json({
                             status: 500,
                             result: "Error"
-                        }); return;
+                        });
                     }
                 }
             });
@@ -193,7 +219,6 @@ let controller = {
         dbconnection.getConnection(function(connError, conn) {
             //Not connected
             if (connError) {
-                console.log(dbError);
                 res.status(502).json({
                     status: 502,
                     result: "Couldn't connect to database"
@@ -212,7 +237,6 @@ let controller = {
                     }); return;
                 }
                 
-                console.log('Results =', results);
                 if(results.affectedRows > 0) {
                     res.status(200).json({
                         status: 200,
