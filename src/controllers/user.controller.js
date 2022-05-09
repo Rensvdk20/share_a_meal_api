@@ -2,23 +2,18 @@ const assert = require('assert');
 const dbconnection = require('../../database/dbconnection');
 
 let controller = {
-    validateUserPost: (req, res, next) => {
+    validateUser: (req, res, next) => {
         let user = req.body;
         let {firstName, lastName, street, city, isActive, emailAdress, phoneNumber, password} = user;
         try {
-            //Check if the object contains at least one valid field
-            assert(Object.keys(user).length > 0, 'You have to send at least one valid field');
-            
             //Check if each field has the correct type
             assert(typeof firstName === 'string', 'Firstname must be a string');
             assert(typeof lastName === 'string', 'LastName must be a string');
             assert(typeof street === 'string', 'Street must be a string');
             assert(typeof city === 'string', 'City must be a string');
-            //Not required
-            if(isActive) { assert(typeof isActive === 'boolean', 'IsActive must be a boolean'); }
+            assert(typeof isActive === 'boolean', 'IsActive must be a boolean');
             assert(typeof emailAdress === 'string', 'EmailAddress must be a string');
-            //Not required
-            if(phoneNumber) { assert(typeof phoneNumber === 'string', 'PhoneNumber must be a string'); }
+            assert(typeof phoneNumber === 'string', 'PhoneNumber must be a string');
             assert(typeof password === 'string', 'Password must a string');
 
             next();
@@ -29,33 +24,6 @@ let controller = {
             }
 
             console.log(error);
-            next(error);
-        }
-    },
-    validateUserUpdate: (req, res, next) => {
-        let updatedUserBody = req.body;
-        let {firstName, lastName, street, city, isActive, emailAdress, phoneNumber, password} = updatedUserBody;
-        try {
-            //Check if the object contains at least one valid field
-            assert(Object.keys(updatedUserBody).length > 0, 'You have to send at least one valid field');
-            
-            //Check the field only if it is send with the body
-            if(firstName) {assert(typeof firstName === 'string', 'Firstname must be a string'); }
-            if(lastName) {assert(typeof lastName === 'string', 'LastName must be a string'); }
-            if(street) {assert(typeof street === 'string', 'Street must be a string'); }
-            if(city) {assert(typeof city === 'string', 'City must be a string'); }
-            if(isActive) { assert(typeof isActive === 'boolean', 'IsActive must be a boolean'); }
-            if(emailAdress) { assert(typeof emailAdress === 'string', 'EmailAddress must be a string');; }
-            if(phoneNumber) { assert(typeof phoneNumber === 'string', 'PhoneNumber must be a string'); }
-            if(password) { assert(typeof password === 'string', 'Password must a string'); }
-
-            next();
-        } catch (err) {
-            const error = {
-                status: 400,
-                result: err.message
-            }
-
             next(error);
         }
     },

@@ -5,7 +5,7 @@ const userController = require('../controllers/user.controller');
 //########## Users ###############
 
 //Register user
-router.post("/user", userController.validateUserPost, userController.addUser);
+router.post("/user", userController.validateUser, userController.addUser);
 
 //Get all users
 router.get("/user", userController.getAllUsers);
@@ -17,7 +17,7 @@ router.get("/user/profile", userController.getUserProfile)
 router.get("/user/:id", userController.getUserById)
 
 //Update user
-router.put("/user/:id", userController.validateUserUpdate, userController.updateUser);
+router.put("/user/:id", userController.validateUser, userController.updateUser);
 
 //Delete user
 router.delete("/user/:id", userController.deleteUser);
