@@ -60,9 +60,12 @@ let controller = {
                         });
                     }
                 } else {
-                    res.status(201).json({
-                        status: 201,
-                        result: "User successfully added"
+                    res.status(200).json({
+                        status: 200,
+                        result: {
+                            username: user.firstName + " " + user.lastName,
+                            token: "-"
+                        }
                     });
                 }
             });
