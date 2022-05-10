@@ -14,12 +14,12 @@ router.get("/user", userController.getAllUsers);
 router.get("/user/profile", userController.getUserProfile)
 
 //Get user by id
-router.get("/user/:id", userController.getUserById)
+router.get("/user/:id", userController.validateId, userController.getUserById)
 
 //Update user
-router.put("/user/:id", userController.validateUser, userController.updateUser);
+router.put("/user/:id", userController.validateId, userController.validateUser, userController.updateUser);
 
 //Delete user
-router.delete("/user/:id", userController.deleteUser);
+router.delete("/user/:id", userController.validateId, userController.deleteUser);
 
 module.exports = router;

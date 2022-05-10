@@ -20,7 +20,22 @@ let controller = {
         } catch (err) {
             const error = {
                 status: 400,
-                result: err.message
+                message: err.message
+            }
+
+            console.log(error);
+            next(error);
+        }
+    },
+    validateId: (req, res, next) => {
+        let userId = req.params.id;
+        try {
+            assert(Number.isInteger(parseInt(userId)), "Id must be a number");
+            next();
+        } catch (err) {
+            const error = {
+                status: 400,
+                message: err.message
             }
 
             console.log(error);
@@ -49,9 +64,9 @@ let controller = {
                 if(dbError) {
                     console.log(dbError);
                     if(dbError.errno == 1062) {
-                        res.status(400).json({
-                            status: 400,
-                            result: "Email is already used"
+                        res.status(409).json({
+                            status: 409,
+                            message: "Email is already used"
                         });
                     } else {
                         res.status(500).json({
@@ -140,7 +155,7 @@ let controller = {
                 } else {
                     res.status(404).json({
                         status: 404,
-                        result: "User not found"
+                        message: "User not found"
                     });
                 }
             });
@@ -166,7 +181,7 @@ let controller = {
                 if(results.affectedRows > 0) {
                     res.status(200).json({
                         status: 200,
-                        result: `User: ${userId} successfully updated`
+                        message: `User: ${userId} successfully updated`
                     });
                 } else {
                     if(dbError == null) {
@@ -216,7 +231,7 @@ let controller = {
                 } else {
                     res.status(404).json({
                         status: 404,
-                        result: "User not found"
+                        message: "User not found"
                     });
                 }
             });

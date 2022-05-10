@@ -32,7 +32,7 @@ describe('Manage users api/user', () => {
                 if (connError) throw connError;
 
                 //Empty database for testing
-                conn.query(CLEAR_DB + INSERT_USER_1, function (dbError, results, fields) {
+                conn.query(CLEAR_DB, function (dbError, results, fields) {
                         // When done with the connection, release it.
                         conn.release();
 
@@ -61,11 +61,11 @@ describe('Manage users api/user', () => {
 
                 res.should.have.status(400);
                 res.should.be.an('object');
-                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
 
-                let { status, result } = res.body;
+                let { status, message } = res.body;
                 status.should.be.a('number');
-                result.should.be.a('string').that.contains('Firstname must be a string');
+                message.should.be.a('string').that.contains('Firstname must be a string');
                 
                 done();
             });
@@ -80,28 +80,43 @@ describe('Manage users api/user', () => {
         // });
 
         it('TC 201-4 If the email is already in use, a valid error should be returned', (done) => {
-            chai.request(server).post('/api/user').send({
-                firstName: 'first',
-                lastName: "last",
-                street: "street",
-                city: "city",
-                isActive: true,
-                emailAdress: "d.ambesi@avans.nl",
-                phoneNumber: "+31646386382",
-                password: "secret"
-            })
-            .end((err, res) => {
-                assert.ifError(err);
+            //Connect to the database
+            dbconnection.getConnection(function (connError, conn) {
+                if (connError) throw connError;
 
-                res.should.have.status(400);
-                res.should.be.an('object');
-                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+                //Empty database for testing
+                conn.query(INSERT_USER_1, function (dbError, results, fields) {
+                        // When done with the connection, release it.
+                        conn.release();
 
-                let { status, result } = res.body;
-                status.should.be.a('number');
-                result.should.be.a('string').that.contains('Email is already used');
-                
-                done();
+                        // Handle error after the release.
+                        if (dbError) throw dbError;
+
+                        chai.request(server).post('/api/user').send({
+                            firstName: 'first',
+                            lastName: "last",
+                            street: "street",
+                            city: "city",
+                            isActive: true,
+                            emailAdress: "d.ambesi@avans.nl",
+                            phoneNumber: "+31646386382",
+                            password: "secret"
+                        })
+                        .end((err, res) => {
+                            assert.ifError(err);
+            
+                            res.should.have.status(409);
+                            res.should.be.an('object');
+                            res.body.should.be.an('object').that.has.all.keys('status', 'message');
+            
+                            let { status, message } = res.body;
+                            status.should.be.a('number');
+                            message.should.be.a('string').that.contains('Email is already used');
+                            
+                            done();
+                        });
+                    }
+                )
             });
         });
 
@@ -219,24 +234,28 @@ describe('Manage users api/user', () => {
             });
         });
 
-        it(`TC-204-1 If the user doesn't exist, a valid error should be returned.`, (done) => {
+        // it('TC-204-1 Token not valid', (done) => {
+
+        // });
+
+        it(`TC-204-2 If the user doesn't exist, a valid error should be returned.`, (done) => {
             chai.request(server).get('/api/user/0')
             .end((err, res) => {
                 assert.ifError(err);
 
                 res.should.have.status(404);
                 res.should.be.an('object');
-                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
 
-                let { status, result } = res.body;
+                let { status, message } = res.body;
                 status.should.be.a('number');
-                result.should.be.a('string').that.contains('User not found');
+                message.should.be.a('string').that.contains('User not found');
 
                 done();
             });
         });
 
-        it('TC-204-2 User exists and returns the correct keys', (done) => {
+        it('TC-204-3 User exists and returns the correct keys', (done) => {
             chai.request(server).get('/api/user/1')
             .end((err, res) => {
                 assert.ifError(err);
@@ -291,11 +310,11 @@ describe('Manage users api/user', () => {
 
                 res.should.have.status(400);
                 res.should.be.an('object');
-                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
 
-                let { status, result } = res.body;
+                let { status, message } = res.body;
                 status.should.be.a('number');
-                result.should.be.a('string').that.contains('Firstname must be a string');
+                message.should.be.a('string').that.contains('Firstname must be a string');
                 
                 done();
             });
@@ -360,10 +379,11 @@ describe('Manage users api/user', () => {
 
                 res.should.have.status(200);
                 res.should.be.an('object');
-                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
 
-                let { status, result } = res.body;
+                let { status, message } = res.body;
                 status.should.be.a('number');
+                message.should.be.a('string');
 
                 chai.request(server).get(`/api/user/${id}`)
                 .end((errorGet, res) => {
@@ -410,7 +430,7 @@ describe('Manage users api/user', () => {
             });
         });
 
-        it("TC-206-1 If the user doesn't exist, a valid error should be returned", () => {
+        it("TC-206-1 If the user doesn't exist, a valid error should be returned", (done) => {
             const id = 0;
 
             chai.request(server).delete(`/api/user/${id}`)
@@ -419,11 +439,13 @@ describe('Manage users api/user', () => {
 
                 res.should.have.status(404);
                 res.should.be.an('object');
-                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
 
-                let { status, result } = res.body;
+                let { status, message } = res.body;
                 status.should.be.a('number');
-                result.should.be.a('string').that.contains('User not found');
+                message.should.be.a('string').that.contains('User not found');
+
+                done();
             });
         });
 
@@ -455,11 +477,11 @@ describe('Manage users api/user', () => {
 
                     res.should.have.status(404);
                     res.should.be.an('object');
-                    res.body.should.be.an('object').that.has.all.keys('status', 'result');
+                    res.body.should.be.an('object').that.has.all.keys('status', 'message');
 
-                    let { status, result } = res.body;
+                    let { status, message } = res.body;
                     status.should.be.a('number');
-                    result.should.be.a('string').that.contains('User not found');
+                    message.should.be.a('string').that.contains('User not found');
 
                     done();
                 });
