@@ -150,7 +150,7 @@ let controller = {
                 } else {
                     res.status(404).json({
                         status: 404,
-                        message: "User not found"
+                        message: "User does not exist"
                     });
                 }
             });
@@ -182,7 +182,7 @@ let controller = {
                     if(dbError == null) {
                         res.status(404).json({
                             status: 404,
-                            result: "User not found"
+                            result: "User does not exist"
                         });
                     } else {
                         console.log(dbError);
@@ -226,7 +226,7 @@ let controller = {
                 } else {
                     res.status(400).json({
                         status: 400,
-                        message: "User not found"
+                        message: "User does not exist"
                     });
                 }
             });

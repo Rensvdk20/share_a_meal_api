@@ -140,7 +140,7 @@ describe('Manage users api/user', () => {
 
                 let { status, result } = res.body;
                 status.should.be.a('number');
-                result.should.be.an('object').that.includes.key('username', "token");
+                result.should.be.an('object').that.includes.keys('firstName', 'lastName', 'street', 'city', 'isActive', 'emailAdress', 'password');
                 
                 done();
             });
