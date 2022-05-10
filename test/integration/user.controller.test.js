@@ -134,7 +134,7 @@ describe('Manage users api/user', () => {
             .end((err, res) => {
                 assert.ifError(err);
 
-                res.should.have.status(200);
+                res.should.have.status(201);
                 res.should.be.an('object');
                 res.body.should.be.an('object').that.has.all.keys('status', 'result');
 
@@ -437,7 +437,7 @@ describe('Manage users api/user', () => {
             .end((errorUpdate, res) => {
                 assert.ifError(errorUpdate);
 
-                res.should.have.status(404);
+                res.should.have.status(400);
                 res.should.be.an('object');
                 res.body.should.be.an('object').that.has.all.keys('status', 'message');
 
