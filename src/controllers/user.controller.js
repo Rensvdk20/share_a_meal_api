@@ -54,7 +54,7 @@ let controller = {
             }
             
             //Insert the user object into the database
-            conn.query(`INSERT INTO user SET ?`, user, function (dbError, results, fields) {
+            conn.query(`INSERT INTO user SET ?`, user, function (dbError, result, fields) {
                 // When done with the connection, release it.
                 conn.release();
 
@@ -75,7 +75,10 @@ let controller = {
                 } else {
                     res.status(201).json({
                         status: 201,
-                        result: user
+                        result: {
+                            id: result.insertId,
+                            ...user
+                        }
                     });
                 }
             });
