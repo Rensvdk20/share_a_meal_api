@@ -249,7 +249,7 @@ describe('Manage users api/user', () => {
 
                 let { status, message } = res.body;
                 status.should.be.a('number');
-                message.should.be.a('string').that.contains('User not found');
+                message.should.be.a('string').that.contains('User does not exist');
 
                 done();
             });
@@ -352,7 +352,7 @@ describe('Manage users api/user', () => {
 
                 let { status, result } = res.body;
                 status.should.be.a('number');
-                result.should.be.a('string').that.contains('User not found');
+                result.should.be.a('string').that.contains('User does not exist');
             });
         });
 
@@ -443,7 +443,7 @@ describe('Manage users api/user', () => {
 
                 let { status, message } = res.body;
                 status.should.be.a('number');
-                message.should.be.a('string').that.contains('User not found');
+                message.should.be.a('string').that.contains('User does not exist');
 
                 done();
             });
@@ -481,7 +481,7 @@ describe('Manage users api/user', () => {
 
                     let { status, message } = res.body;
                     status.should.be.a('number');
-                    message.should.be.a('string').that.contains('User not found');
+                    message.should.be.a('string').that.contains('User does not exist');
 
                     done();
                 });

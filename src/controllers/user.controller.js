@@ -75,10 +75,7 @@ let controller = {
                 } else {
                     res.status(201).json({
                         status: 201,
-                        result: {
-                            username: user.firstName + " " + user.lastName,
-                            token: "-"
-                        }
+                        result: user
                     });
                 }
             });
