@@ -379,7 +379,7 @@ describe('Manage users api/user', () => {
 
                 res.should.have.status(200);
                 res.should.be.an('object');
-                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message', "result");
 
                 let { status, message } = res.body;
                 status.should.be.a('number');
