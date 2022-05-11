@@ -466,9 +466,9 @@ describe('Manage users api/user', () => {
 
                 res.should.have.status(200);
                 res.should.be.an('object');
-                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
 
-                let { status, result } = res.body;
+                let { status, message } = res.body;
                 status.should.be.a('number');
 
                 chai.request(server).get(`/api/user/${id}`)

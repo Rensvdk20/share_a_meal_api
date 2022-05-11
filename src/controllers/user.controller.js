@@ -228,7 +228,7 @@ let controller = {
                 if(results.affectedRows > 0) {
                     res.status(200).json({
                         status: 200,
-                        result: `User: ${userId} successfully deleted`
+                        message: `User: ${userId} successfully deleted`
                     });
                 } else {
                     res.status(400).json({
