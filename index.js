@@ -11,7 +11,8 @@ const router = require("./src/routes/user.routes");
 
 app.all("*", (req, res, next) => {
     const method = req.method;
-    console.log(`Method ${method} has been called`);
+    console.log(`Method ${method} has been called on (${req.url})`);
+    
     next();
 });
 
