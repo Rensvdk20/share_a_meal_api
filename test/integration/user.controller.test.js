@@ -134,13 +134,13 @@ describe('Manage users api/user', () => {
             .end((err, res) => {
                 assert.ifError(err);
 
-                res.should.have.status(200);
+                res.should.have.status(201);
                 res.should.be.an('object');
                 res.body.should.be.an('object').that.has.all.keys('status', 'result');
 
                 let { status, result } = res.body;
                 status.should.be.a('number');
-                result.should.be.an('object').that.includes.key('username', "token");
+                result.should.be.an('object').that.includes.keys('firstName', 'lastName', 'street', 'city', 'isActive', 'emailAdress', 'password');
                 
                 done();
             });
@@ -249,7 +249,7 @@ describe('Manage users api/user', () => {
 
                 let { status, message } = res.body;
                 status.should.be.a('number');
-                message.should.be.a('string').that.contains('User not found');
+                message.should.be.a('string').that.contains('User does not exist');
 
                 done();
             });
@@ -352,7 +352,7 @@ describe('Manage users api/user', () => {
 
                 let { status, result } = res.body;
                 status.should.be.a('number');
-                result.should.be.a('string').that.contains('User not found');
+                result.should.be.a('string').that.contains('User does not exist');
             });
         });
 
@@ -437,13 +437,13 @@ describe('Manage users api/user', () => {
             .end((errorUpdate, res) => {
                 assert.ifError(errorUpdate);
 
-                res.should.have.status(404);
+                res.should.have.status(400);
                 res.should.be.an('object');
                 res.body.should.be.an('object').that.has.all.keys('status', 'message');
 
                 let { status, message } = res.body;
                 status.should.be.a('number');
-                message.should.be.a('string').that.contains('User not found');
+                message.should.be.a('string').that.contains('User does not exist');
 
                 done();
             });
@@ -481,7 +481,7 @@ describe('Manage users api/user', () => {
 
                     let { status, message } = res.body;
                     status.should.be.a('number');
-                    message.should.be.a('string').that.contains('User not found');
+                    message.should.be.a('string').that.contains('User does not exist');
 
                     done();
                 });

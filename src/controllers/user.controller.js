@@ -28,7 +28,7 @@ let controller = {
         }
     },
     validateId: (req, res, next) => {
-        let userId = req.params.id;
+        const userId = req.params.id;
         try {
             assert(Number.isInteger(parseInt(userId)), "Id must be a number");
             next();
@@ -54,11 +54,9 @@ let controller = {
             }
             
             //Insert the user object into the database
-            conn.query(`INSERT INTO user SET ?`, user, function (dbError, results, fields) {
+            conn.query(`INSERT INTO user SET ?`, user, function (dbError, result, fields) {
                 // When done with the connection, release it.
                 conn.release();
-                
-                //Check if email address is already used
 
                 // Handle error after the release.
                 if(dbError) {
@@ -75,11 +73,11 @@ let controller = {
                         });
                     }
                 } else {
-                    res.status(200).json({
-                        status: 200,
+                    res.status(201).json({
+                        status: 201,
                         result: {
-                            username: user.firstName + " " + user.lastName,
-                            token: "-"
+                            id: result.insertId,
+                            ...user
                         }
                     });
                 }
@@ -155,7 +153,7 @@ let controller = {
                 } else {
                     res.status(404).json({
                         status: 404,
-                        message: "User not found"
+                        message: "User does not exist"
                     });
                 }
             });
@@ -191,7 +189,7 @@ let controller = {
                     if(dbError == null) {
                         res.status(404).json({
                             status: 404,
-                            result: "User not found"
+                            result: "User does not exist"
                         });
                     } else {
                         console.log(dbError);
@@ -233,9 +231,9 @@ let controller = {
                         result: `User: ${userId} successfully deleted`
                     });
                 } else {
-                    res.status(404).json({
-                        status: 404,
-                        message: "User not found"
+                    res.status(400).json({
+                        status: 400,
+                        message: "User does not exist"
                     });
                 }
             });
