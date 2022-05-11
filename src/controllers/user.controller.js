@@ -181,7 +181,7 @@ let controller = {
                         status: 200,
                         message: `${userId} successfully updated`,
                         result: {
-                            res,
+                            id: userId,
                             ...newUserInfo
                         }
                     });
