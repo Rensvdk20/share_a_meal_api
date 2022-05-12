@@ -1,4 +1,5 @@
 const assert = require('assert');
+const { off } = require('process');
 const dbconnection = require('../../database/dbconnection');
 
 let controller = {
@@ -85,6 +86,62 @@ let controller = {
         });
     },
     getAllUsers: (req, res) => {
+        // const { firstName, isActive } = req.query;
+
+        // let queryString = 'SELECT * FROM `user`';
+        // if(firstName || isActive) {
+        //     queryString += ' WHERE ';
+        //     if(firstName) {
+        //         queryString += `firstName LIKE ?`;
+        //     }
+
+        //     if(isActive) {
+        //         queryString += `isActive LIKE ?`;
+        //     }
+        // } queryString += ';';
+
+        // console.log(queryString);
+        
+        let {id, firstName, lastName, street, city, isActive, emailAdress, phoneNumber} = req.query;
+
+        if(!id) { id = '%'}
+        if(!firstName) { firstName = '%' }
+        if(!lastName) { lastName = '%' }
+        if(!street) {street = '%' }
+        if(!city) { city = '%' }
+        if(!isActive) { isActive = '%' }
+        if(!emailAdress) { emailAdress = '%' }
+        if(!phoneNumber) { phoneNumber = '%'}
+
+        // dbconnection.getConnection(function(connError, conn) {
+        //     //Not connected
+        //     if (connError) {
+        //         res.status(502).json({
+        //             status: 502,
+        //             result: "Couldn't connect to database"
+        //         }); return;
+        //     }
+            
+        //     conn.query(queryString, ['%' + firstName + '%', isActive], function (dbError, results, fields) {
+        //         // When done with the connection, release it.
+        //         conn.release();
+                
+        //         // Handle error after the release.
+        //         if (dbError) {
+        //             console.log(dbError);
+        //             res.status(500).json({
+        //                 status: 500,
+        //                 result: "Error"
+        //             }); return;
+        //         }
+                
+        //         res.status(200).json({
+        //             status: 200,
+        //             result: results
+        //         });
+        //     });
+        // });
+
         dbconnection.getConnection(function(connError, conn) {
             //Not connected
             if (connError) {
@@ -94,17 +151,26 @@ let controller = {
                 }); return;
             }
             
-            conn.query('SELECT * FROM user', function (dbError, results, fields) {
+            conn.query(`SELECT id, firstName, lastName, isActive, emailAdress, phoneNumber, roles, street, city 
+            FROM user WHERE id LIKE ? AND firstName LIKE ? AND lastName LIKE ? AND street LIKE ? AND city LIKE ? AND isActive LIKE ? AND emailAdress LIKE ? AND phoneNumber LIKE ?`,
+            [id, '%' + firstName + '%', '%' + lastName + '%', '%' + street + '%', '%' + city + '%', isActive, '%' + emailAdress + '%', '%' + phoneNumber + '%'], function (dbError, results, fields) {
                 // When done with the connection, release it.
                 conn.release();
                 
                 // Handle error after the release.
                 if (dbError) {
                     console.log(dbError);
-                    res.status(500).json({
-                        status: 500,
-                        result: "Error"
-                    }); return;
+                    if(dbError.errno === 1064) {
+                        res.status(400).json({
+                            status: 400,
+                            message: "Something went wrong with the filter URL"
+                        }); return;
+                    } else {
+                        res.status(500).json({
+                            status: 500,
+                            result: "Error"
+                        }); return;
+                    }
                 }
                 
                 res.status(200).json({
