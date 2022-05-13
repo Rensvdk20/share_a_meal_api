@@ -86,22 +86,6 @@ let controller = {
         });
     },
     getAllUsers: (req, res) => {
-        // const { firstName, isActive } = req.query;
-
-        // let queryString = 'SELECT * FROM `user`';
-        // if(firstName || isActive) {
-        //     queryString += ' WHERE ';
-        //     if(firstName) {
-        //         queryString += `firstName LIKE ?`;
-        //     }
-
-        //     if(isActive) {
-        //         queryString += `isActive LIKE ?`;
-        //     }
-        // } queryString += ';';
-
-        // console.log(queryString);
-        
         let {id, firstName, lastName, street, city, isActive, emailAdress, phoneNumber} = req.query;
 
         if(!id) { id = '%'}
@@ -112,35 +96,6 @@ let controller = {
         if(!isActive) { isActive = '%' }
         if(!emailAdress) { emailAdress = '%' }
         if(!phoneNumber) { phoneNumber = '%'}
-
-        // dbconnection.getConnection(function(connError, conn) {
-        //     //Not connected
-        //     if (connError) {
-        //         res.status(502).json({
-        //             status: 502,
-        //             result: "Couldn't connect to database"
-        //         }); return;
-        //     }
-            
-        //     conn.query(queryString, ['%' + firstName + '%', isActive], function (dbError, results, fields) {
-        //         // When done with the connection, release it.
-        //         conn.release();
-                
-        //         // Handle error after the release.
-        //         if (dbError) {
-        //             console.log(dbError);
-        //             res.status(500).json({
-        //                 status: 500,
-        //                 result: "Error"
-        //             }); return;
-        //         }
-                
-        //         res.status(200).json({
-        //             status: 200,
-        //             result: results
-        //         });
-        //     });
-        // });
 
         dbconnection.getConnection(function(connError, conn) {
             //Not connected
