@@ -1,10 +1,13 @@
+require('dotenv').config();
 process.env.DB_DATABASE = process.env.DB_DATABASE || 'share-a-meal-testdb'
+process.env.LOGLEVEL = 'warn'
+
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const server = require('../../index');
 const assert = require('assert');
-require('dotenv').config();
 const dbconnection = require('../../database/dbconnection');
+const logger = require('../../src/config/tracer_config').logger;
 
 //Clear database sql
 const CLEAR_MEAL_TABLE = 'DELETE IGNORE FROM `meal`;';
@@ -186,7 +189,7 @@ describe('Manage users api/user', () => {
                 result.should.be.an('array');
                 // result.length.should.be(2);
                 for(user of result) {
-                    user.should.include.all.keys('id', 'firstName', 'lastName', 'street', 'city', 'isActive', 'emailAdress', 'password', 'roles');
+                    user.should.include.all.keys('id', 'firstName', 'lastName', 'street', 'city', 'isActive', 'emailAdress', 'phoneNumber', 'roles', 'street', 'city');
                 }
 
                 done();

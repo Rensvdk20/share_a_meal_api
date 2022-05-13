@@ -1,5 +1,6 @@
-const mysql = require('mysql2');
 require('dotenv').config();
+const mysql = require('mysql2');
+const logger = require('../src/config/tracer_config').logger;
 
 const pool = mysql.createPool({
     connectionLimit : 10,
@@ -14,15 +15,7 @@ const pool = mysql.createPool({
 });
 
 pool.on('connection', function (connection) {
-    console.log(`Connected to database '${connection.config.database}'`)
+    logger.debug(`Connected to database '${connection.config.database}'`)
 });
-
-// pool.on('acquire', function (connection) {
-//     console.log('Connection %d acquired', connection.threadId);
-// });
-
-// pool.on('release', function (connection) {
-//     console.log('Connection %d released', connection.threadId);
-// });
 
 module.exports = pool; 

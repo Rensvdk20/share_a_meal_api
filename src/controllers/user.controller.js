@@ -1,6 +1,8 @@
+require('dotenv').config();
 const assert = require('assert');
 const { off } = require('process');
 const dbconnection = require('../../database/dbconnection');
+const logger = require('../config/tracer_config').logger;
 
 let controller = {
     validateUser: (req, res, next) => {
@@ -24,7 +26,7 @@ let controller = {
                 message: err.message
             }
 
-            console.log(error);
+            logger.debug(error);
             next(error);
         }
     },
@@ -39,7 +41,7 @@ let controller = {
                 message: err.message
             }
 
-            console.log(error);
+            logger.error(error);
             next(error);
         }
     },
@@ -61,13 +63,14 @@ let controller = {
 
                 // Handle error after the release.
                 if(dbError) {
-                    console.log(dbError);
+                    logger.debug(dbError);
                     if(dbError.errno == 1062) {
                         res.status(409).json({
                             status: 409,
                             message: "Email is already used"
                         });
                     } else {
+                        logger.error(dbError);
                         res.status(500).json({
                             status: 500,
                             result: "Error"
@@ -114,7 +117,7 @@ let controller = {
                 
                 // Handle error after the release.
                 if (dbError) {
-                    console.log(dbError);
+                    logger.error(dbError);
                     if(dbError.errno === 1064) {
                         res.status(400).json({
                             status: 400,
@@ -158,7 +161,7 @@ let controller = {
                 
                 // Handle error after the release.
                 if (dbError) {
-                    console.log(dbError);
+                    logger.error(dbError);
                     res.status(500).json({
                         status: 500,
                         result: "Error"
@@ -213,7 +216,7 @@ let controller = {
                             result: "User does not exist"
                         });
                     } else {
-                        console.log(dbError);
+                        logger.debug(dbError);
                         res.status(500).json({
                             status: 500,
                             result: "Error"
