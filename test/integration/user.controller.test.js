@@ -1,6 +1,6 @@
 require('dotenv').config();
-process.env.DB_DATABASE = process.env.DB_DATABASE || 'share-a-meal-testdb'
-process.env.LOGLEVEL = 'warn'
+process.env.DB_DATABASE = 'share-a-meal-testdb' || process.env.DB_DATABASE;
+process.env.LOGLEVEL = 'warn';
 
 const chai = require('chai');
 const chaiHttp = require('chai-http');
@@ -17,12 +17,12 @@ const CLEAR_DB = CLEAR_MEAL_TABLE + CLEAR_PARTICIPANTS_TABLE + CLEAR_USERS_TABLE
 
 //Insert user sql
 const INSERT_USER_1 =
-    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
-    '(1, "first", "last", "d.ambesi@avans.nl", "secret", "street", "city");';
+    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `isActive`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
+    '(1, "first", "last", 1, "d.ambesi@avans.nl", "secret", "street", "city");';
 
 const INSERT_USER_2 =
-    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
-    '(2, "test", "test", "test@server.com", "test", "test", "test");';
+    'INSERT INTO `user` (`id`, `firstName`, `lastName`,  `isActive`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
+    '(2, "test", "test", 1, "test@server.com", "test", "test", "test");';
 
 chai.should();
 chai.use(chaiHttp);
@@ -143,7 +143,7 @@ describe('Manage users api/user', () => {
 
                 let { status, result } = res.body;
                 status.should.be.a('number');
-                result.should.be.an('object').that.includes.keys('firstName', 'lastName', 'street', 'city', 'isActive', 'emailAdress', 'password');
+                result.should.be.an('object').that.includes.keys('id', 'firstName', 'lastName', 'isActive', 'emailAdress', 'password', 'phoneNumber', 'street', 'city');
                 
                 done();
             });
@@ -151,7 +151,6 @@ describe('Manage users api/user', () => {
     });
 
     describe('UC-202 get all users', () => {
-        var run = false;
         beforeEach((done) => {
             //Connect to the database
             dbconnection.getConnection(function (connError, conn) {
@@ -171,9 +170,34 @@ describe('Manage users api/user', () => {
             });
         });
 
-        // it('TC-202-1 Should return zero users', (done) => {
+        it('TC-202-1 Should return zero users', (done) => {
+            dbconnection.getConnection(function (connError, conn) {
+                if (connError) throw connError;
 
-        // });
+                //Empty database
+                conn.query(CLEAR_DB, function (dbError, results, fields) {
+                        // When done with the connection, release it.
+                        conn.release();
+
+                        chai.request(server).get('/api/user')
+                        .end((err, res) => {
+                            // Handle error after the release.
+                            if (dbError) throw dbError;
+
+                            res.should.have.status(200);
+                            res.should.be.an('object');
+                            res.body.should.be.an('object').that.has.all.keys('status', 'result');
+
+                            let { status, result } = res.body;
+                            status.should.be.a('number');
+                            result.should.be.an('array').that.is.empty;
+                            
+                            done();
+                        });
+                    }
+                )
+            });
+        });
 
         it('TC-202-2 Should return a list of 2 users', (done) => {
             chai.request(server).get('/api/user')
@@ -187,30 +211,82 @@ describe('Manage users api/user', () => {
                 let { status, result } = res.body;
                 status.should.be.a('number');
                 result.should.be.an('array');
-                // result.length.should.be(2);
+                result.should.have.lengthOf(2);
                 for(user of result) {
-                    user.should.include.all.keys('id', 'firstName', 'lastName', 'street', 'city', 'isActive', 'emailAdress', 'phoneNumber', 'roles', 'street', 'city');
+                    user.should.include.all.keys('id', 'firstName', 'lastName', 'isActive', 'emailAdress', 'phoneNumber', 'roles', 'street', 'city');
                 }
 
                 done();
             });
         });
 
-        // it("UC-202-3 Should return an empty list by searching for an non-existing name", (done) => {
+        it("UC-202-3 Should return an empty list by searching for an non-existing name", (done) => {
+            chai.request(server).get('/api/user?firstName=nonExistingFirstName&lastName=nonExistingLastName')
+            .end((err, res) => {
+                assert.ifError(err);
 
-        // });
+                res.should.have.status(200);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+
+                let { status, result } = res.body;
+                status.should.be.a('number');
+                result.should.be.an('array').that.is.empty;
+                
+                done();
+            });
+        });
     
-        // it("UC-202-4 Should return a list of user filtered by non-active status", (done) => {
-            
-        // });
+        it("UC-202-4 Should return a list of user filtered by non-active status", (done) => {
+            chai.request(server).get('/api/user?isActive=0')
+            .end((err, res) => {
+                assert.ifError(err);
 
-        // it("UC-202-5 Should return a list of user filtered by active status", (done) => {
+                res.should.have.status(200);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'result');
 
-        // });
+                let { status, result } = res.body;
+                status.should.be.a('number');
+                result.should.be.an('array').that.is.empty;
+                
+                done();
+            });     
+        });
 
-        // it("UC-202-5 Should return alist by searching for an existing name", (done) => {
+        it("UC-202-5 Should return a list of user filtered by active status", (done) => {
+            chai.request(server).get('/api/user?isActive=1')
+            .end((err, res) => {
+                assert.ifError(err);
 
-        // });
+                res.should.have.status(200);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+
+                let { status, result } = res.body;
+                status.should.be.a('number');
+                result.should.be.an('array').that.has.a.lengthOf(2);
+                
+                done();
+            });
+        });
+
+        it("UC-202-5 Should return alist by searching for an existing name", (done) => {
+            chai.request(server).get('/api/user?firstName=test&lastName=test')
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(200);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+
+                let { status, result } = res.body;
+                status.should.be.a('number');
+                result.should.be.an('array').that.has.a.lengthOf(1);
+                
+                done();
+            });
+        });
     });
 
     // describe('UC-203 get user profile', () => {
@@ -270,7 +346,7 @@ describe('Manage users api/user', () => {
                 let { status, result } = res.body;
                 status.should.be.a('number');
                 result.should.be.a('object');
-                result.should.include.all.keys('id', 'firstName', 'lastName', 'street', 'city', 'isActive', 'emailAdress', 'password', 'roles');
+                result.should.include.all.keys('id', 'firstName', 'lastName', 'isActive', 'emailAdress', 'phoneNumber', 'roles', 'street', 'city');
 
                 done();
             });
