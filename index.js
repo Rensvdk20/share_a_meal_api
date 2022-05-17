@@ -1,14 +1,15 @@
 require('dotenv').config();
 const express = require("express");
 const app = express();
-const logger = require('./src/config/tracer_config').logger;
 
 const port = process.env.PORT;
 const bodyParser = require("body-parser");
 const { get } = require("express/lib/response");
 app.use(bodyParser.json());
 
-const router = require("./src/routes/user.routes");
+const logger = require('./src/config/tracer_config').logger;
+const authRoutes = require('./src/routes/authentication.routes');
+const userRoutes = require("./src/routes/user.routes");
 
 app.all("*", (req, res, next) => {
     const method = req.method;
@@ -17,7 +18,8 @@ app.all("*", (req, res, next) => {
     next();
 });
 
-app.use('/api', router);
+app.use('/api', authRoutes)
+app.use('/api', userRoutes);
 
 app.get("/", (req, res) => {
     res.status(200).json({

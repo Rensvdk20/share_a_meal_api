@@ -1,7 +1,7 @@
 require('dotenv').config();
 const assert = require('assert');
 const { off } = require('process');
-const dbconnection = require('../../database/dbconnection');
+const dbconnection = require('../database/dbconnection');
 const logger = require('../config/tracer_config').logger;
 
 let controller = {
@@ -41,7 +41,7 @@ let controller = {
                 message: err.message
             }
 
-            logger.error(error);
+            logger.debug(error);
             next(error);
         }
     },

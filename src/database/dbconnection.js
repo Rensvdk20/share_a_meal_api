@@ -1,6 +1,6 @@
 require('dotenv').config();
 const mysql = require('mysql2');
-const logger = require('../src/config/tracer_config').logger;
+const logger = require('../config/tracer_config').logger;
 
 const pool = mysql.createPool({
     connectionLimit : 10,

@@ -6,7 +6,7 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const server = require('../../index');
 const assert = require('assert');
-const dbconnection = require('../../database/dbconnection');
+const dbconnection = require('../../src/database/dbconnection');
 const logger = require('../../src/config/tracer_config').logger;
 
 //Clear database sql
