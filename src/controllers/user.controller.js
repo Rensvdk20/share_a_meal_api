@@ -65,6 +65,15 @@ let controller = {
                     message: "Email is not valid"
                 }); return;
             }
+
+            //Check if the password is valid
+            const passwordRegex = /(?=.*[A-Z])(?=.*[0-9])(?=.{8,})/gm
+            if(!user.emailAdress.match(passwordRegex)) {
+                res.status(400).json({
+                    status: 400,
+                    message: "Password must contain at least one uppercase letter, one number and be 8 characters long"
+                }); return;
+            }
             
             //Insert the user object into the database
             conn.query(`INSERT INTO user SET ?`, user, function (dbError, result, fields) {
