@@ -74,9 +74,32 @@ describe('Manage users api/user', () => {
             });
         });
 
-        // it('TC 201-2 If the email is invalid, a valid error should be returned', (done) => {
+        it('TC 201-2 If the email is invalid, a valid error should be returned', (done) => {
+            chai.request(server).post('/api/user').send({
+                //Firstname is missing
+                firstName: "John",
+                lastName: "Doe",
+                street: "Lovensdijkstraat 61",
+                city: "Breda",
+                isActive: true,
+                emailAdress: "test@testcom",
+                phoneNumber: "+31612345678",
+                password: "secret"
+            })
+            .end((err, res) => {
+                assert.ifError(err);
 
-        // });
+                res.should.have.status(400);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.contains('Email is not valid');
+                
+                done();
+            });
+        });
 
         // it('TC 201-3 If the password is invalid, a valid error should be returned', (done) => {
             

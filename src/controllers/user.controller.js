@@ -1,8 +1,10 @@
 require('dotenv').config();
 const assert = require('assert');
 const { off } = require('process');
+
 const dbconnection = require('../database/dbconnection');
 const logger = require('../config/tracer_config').logger;
+const emailValidator = require("email-validator");
 
 let controller = {
     validateUser: (req, res, next) => {
@@ -53,6 +55,14 @@ let controller = {
                 res.status(502).json({
                     status: 502,
                     result: "Couldn't connect to database"
+                }); return;
+            }
+
+            //Check if the email is valid
+            if(!emailValidator.validate(user.emailAdress)) {
+                res.status(400).json({
+                    status: 400,
+                    message: "Email is not valid"
                 }); return;
             }
             
