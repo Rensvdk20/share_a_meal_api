@@ -68,7 +68,7 @@ let controller = {
 
             //Check if the password is valid
             const passwordRegex = /(?=.*[A-Z])(?=.*[0-9])(?=.{8,})/gm
-            if(!user.emailAdress.match(passwordRegex)) {
+            if(!passwordRegex.test(user.password)) {
                 res.status(400).json({
                     status: 400,
                     message: "Password must contain at least one uppercase letter, one number and be 8 characters long"

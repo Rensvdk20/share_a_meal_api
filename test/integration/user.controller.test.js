@@ -20,11 +20,11 @@ const CLEAR_DB = CLEAR_MEAL_TABLE + CLEAR_PARTICIPANTS_TABLE + CLEAR_USERS_TABLE
 //Insert user sql
 const INSERT_USER_1 =
     'INSERT INTO `user` (`id`, `firstName`, `lastName`, `isActive`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
-    '(1, "first", "last", 1, "d.ambesi@avans.nl", "secret", "street", "city");';
+    '(1, "first", "last", 1, "d.ambesi@avans.nl", "verySecr3t", "street", "city");';
 
 const INSERT_USER_2 =
     'INSERT INTO `user` (`id`, `firstName`, `lastName`,  `isActive`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
-    '(2, "test", "test", 1, "test@server.com", "test", "test", "test");';
+    '(2, "test", "test", 1, "test@server.com", "verySecr3t", "test", "test");';
 
 chai.should();
 chai.use(chaiHttp);
@@ -59,7 +59,7 @@ describe('Manage users api/user', () => {
                 isActive: true,
                 emailAdress: "j.doe@server.com",
                 phoneNumber: "+31612345678",
-                password: "secret"
+                password: "verySecr3t"
             })
             .end((err, res) => {
                 assert.ifError(err);
@@ -86,7 +86,7 @@ describe('Manage users api/user', () => {
                 isActive: true,
                 emailAdress: "test@testcom",
                 phoneNumber: "+31612345678",
-                password: "secret"
+                password: "verySecr3t"
             })
             .end((err, res) => {
                 assert.ifError(err);
@@ -128,7 +128,7 @@ describe('Manage users api/user', () => {
                             isActive: true,
                             emailAdress: "d.ambesi@avans.nl",
                             phoneNumber: "+31646386382",
-                            password: "secret"
+                            password: "verySecr3t"
                         })
                         .end((err, res) => {
                             assert.ifError(err);
@@ -157,7 +157,7 @@ describe('Manage users api/user', () => {
                 isActive: true,
                 emailAdress: "email@server.nl",
                 phoneNumber: "+31635368583",
-                password: "secret"
+                password: "verySecr3t"
             })
             .end((err, res) => {
                 assert.ifError(err);
@@ -407,7 +407,7 @@ describe('Manage users api/user', () => {
                 isActive: true,
                 emailAdress: "j.doe@server.com",
                 phoneNumber: "+31612345678",
-                password: "secret"
+                password: "verySecr3t"
             })
             .end((err, res) => {
                 assert.ifError(err);
@@ -443,7 +443,7 @@ describe('Manage users api/user', () => {
                 isActive: true,
                 emailAdress: "newEmail@server.nl",
                 phoneNumber: "+31635368554",
-                password: "newSecret"
+                password: "newverySecr3t"
             }
 
             chai.request(server).put(`/api/user/${id}`).auth(testToken, { type: 'bearer' }).send(newUserInfo)
@@ -474,7 +474,7 @@ describe('Manage users api/user', () => {
                 isActive: true,
                 emailAdress: "f.bar@server.com",
                 phoneNumber: "+31624745783",
-                password: "verySecret"
+                password: "verySecr3t"
             }
 
             chai.request(server).put(`/api/user/${id}`).auth(testToken, { type: 'bearer' }).send(newUserInfo)
