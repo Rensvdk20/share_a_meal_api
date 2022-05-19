@@ -1,5 +1,10 @@
+require('dotenv').config();
 const assert = require('assert');
-const dbconnection = require('../../database/dbconnection');
+const { off } = require('process');
+
+const dbconnection = require('../database/dbconnection');
+const logger = require('../config/tracer_config').logger;
+const emailValidator = require("email-validator");
 
 let controller = {
     validateUser: (req, res, next) => {
@@ -23,7 +28,7 @@ let controller = {
                 message: err.message
             }
 
-            console.log(error);
+            logger.debug(error);
             next(error);
         }
     },
@@ -38,7 +43,7 @@ let controller = {
                 message: err.message
             }
 
-            console.log(error);
+            logger.debug(error);
             next(error);
         }
     },
@@ -52,6 +57,23 @@ let controller = {
                     result: "Couldn't connect to database"
                 }); return;
             }
+
+            //Check if the email is valid
+            if(!emailValidator.validate(user.emailAdress)) {
+                res.status(400).json({
+                    status: 400,
+                    message: "Email is not valid"
+                }); return;
+            }
+
+            //Check if the password is valid
+            const passwordRegex = /(?=.*[A-Z])(?=.*[0-9])(?=.{8,})/gm
+            if(!user.emailAdress.match(passwordRegex)) {
+                res.status(400).json({
+                    status: 400,
+                    message: "Password must contain at least one uppercase letter, one number and be 8 characters long"
+                }); return;
+            }
             
             //Insert the user object into the database
             conn.query(`INSERT INTO user SET ?`, user, function (dbError, result, fields) {
@@ -60,13 +82,14 @@ let controller = {
 
                 // Handle error after the release.
                 if(dbError) {
-                    console.log(dbError);
+                    logger.debug(dbError);
                     if(dbError.errno == 1062) {
                         res.status(409).json({
                             status: 409,
                             message: "Email is already used"
                         });
                     } else {
+                        logger.error(dbError);
                         res.status(500).json({
                             status: 500,
                             result: "Error"
@@ -85,6 +108,17 @@ let controller = {
         });
     },
     getAllUsers: (req, res) => {
+        let {id, firstName, lastName, street, city, isActive, emailAdress, phoneNumber} = req.query;
+
+        if(!id) { id = '%'}
+        if(!firstName) { firstName = '%' }
+        if(!lastName) { lastName = '%' }
+        if(!street) {street = '%' }
+        if(!city) { city = '%' }
+        if(!isActive) { isActive = '%' }
+        if(!emailAdress) { emailAdress = '%' }
+        if(!phoneNumber) { phoneNumber = '%'}
+
         dbconnection.getConnection(function(connError, conn) {
             //Not connected
             if (connError) {
@@ -94,17 +128,26 @@ let controller = {
                 }); return;
             }
             
-            conn.query('SELECT * FROM user', function (dbError, results, fields) {
+            conn.query(`SELECT id, firstName, lastName, isActive, emailAdress, phoneNumber, roles, street, city 
+            FROM user WHERE id LIKE ? AND firstName LIKE ? AND lastName LIKE ? AND street LIKE ? AND city LIKE ? AND isActive LIKE ? AND emailAdress LIKE ? AND phoneNumber LIKE ?`,
+            [id, '%' + firstName + '%', '%' + lastName + '%', '%' + street + '%', '%' + city + '%', isActive, '%' + emailAdress + '%', '%' + phoneNumber + '%'], function (dbError, results, fields) {
                 // When done with the connection, release it.
                 conn.release();
                 
                 // Handle error after the release.
                 if (dbError) {
-                    console.log(dbError);
-                    res.status(500).json({
-                        status: 500,
-                        result: "Error"
-                    }); return;
+                    logger.error(dbError);
+                    if(dbError.errno === 1064) {
+                        res.status(400).json({
+                            status: 400,
+                            message: "Something went wrong with the filter URL"
+                        }); return;
+                    } else {
+                        res.status(500).json({
+                            status: 500,
+                            result: "Error"
+                        }); return;
+                    }
                 }
                 
                 res.status(200).json({
@@ -137,7 +180,7 @@ let controller = {
                 
                 // Handle error after the release.
                 if (dbError) {
-                    console.log(dbError);
+                    logger.error(dbError);
                     res.status(500).json({
                         status: 500,
                         result: "Error"
@@ -192,7 +235,7 @@ let controller = {
                             result: "User does not exist"
                         });
                     } else {
-                        console.log(dbError);
+                        logger.debug(dbError);
                         res.status(500).json({
                             status: 500,
                             result: "Error"

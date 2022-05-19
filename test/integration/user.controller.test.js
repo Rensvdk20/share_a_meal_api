@@ -1,10 +1,15 @@
-process.env.DB_DATABASE = process.env.DB_DATABASE || 'share-a-meal-testdb'
+require('dotenv').config();
+process.env.DB_DATABASE = 'share-a-meal-testdb' || process.env.DB_DATABASE;
+process.env.LOGLEVEL = 'warn';
+
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const server = require('../../index');
 const assert = require('assert');
-require('dotenv').config();
-const dbconnection = require('../../database/dbconnection');
+const dbconnection = require('../../src/database/dbconnection');
+const logger = require('../../src/config/tracer_config').logger;
+
+const testToken = process.env.JWT_TEST_TOKEN;
 
 //Clear database sql
 const CLEAR_MEAL_TABLE = 'DELETE IGNORE FROM `meal`;';
@@ -14,12 +19,12 @@ const CLEAR_DB = CLEAR_MEAL_TABLE + CLEAR_PARTICIPANTS_TABLE + CLEAR_USERS_TABLE
 
 //Insert user sql
 const INSERT_USER_1 =
-    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
-    '(1, "first", "last", "d.ambesi@avans.nl", "secret", "street", "city");';
+    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `isActive`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
+    '(1, "first", "last", 1, "d.ambesi@avans.nl", "secret", "street", "city");';
 
 const INSERT_USER_2 =
-    'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
-    '(2, "test", "test", "test@server.com", "test", "test", "test");';
+    'INSERT INTO `user` (`id`, `firstName`, `lastName`,  `isActive`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
+    '(2, "test", "test", 1, "test@server.com", "test", "test", "test");';
 
 chai.should();
 chai.use(chaiHttp);
@@ -46,7 +51,7 @@ describe('Manage users api/user', () => {
         });
 
         it('TC 201-1 When a required input is missing, a valid error should be returned', (done) => {
-            chai.request(server).post('/api/user').send({
+            chai.request(server).post('/api/user').auth(testToken, { type: 'bearer' }).send({
                 //Firstname is missing
                 lastName: "Doe",
                 street: "Lovensdijkstraat 61",
@@ -71,9 +76,32 @@ describe('Manage users api/user', () => {
             });
         });
 
-        // it('TC 201-2 If the email is invalid, a valid error should be returned', (done) => {
+        it('TC 201-2 If the email is invalid, a valid error should be returned', (done) => {
+            chai.request(server).post('/api/user').auth(testToken, { type: 'bearer' }).send({
+                //Firstname is missing
+                firstName: "John",
+                lastName: "Doe",
+                street: "Lovensdijkstraat 61",
+                city: "Breda",
+                isActive: true,
+                emailAdress: "test@testcom",
+                phoneNumber: "+31612345678",
+                password: "secret"
+            })
+            .end((err, res) => {
+                assert.ifError(err);
 
-        // });
+                res.should.have.status(400);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.contains('Email is not valid');
+                
+                done();
+            });
+        });
 
         // it('TC 201-3 If the password is invalid, a valid error should be returned', (done) => {
             
@@ -92,7 +120,7 @@ describe('Manage users api/user', () => {
                         // Handle error after the release.
                         if (dbError) throw dbError;
 
-                        chai.request(server).post('/api/user').send({
+                        chai.request(server).post('/api/user').auth(testToken, { type: 'bearer' }).send({
                             firstName: 'first',
                             lastName: "last",
                             street: "street",
@@ -121,7 +149,7 @@ describe('Manage users api/user', () => {
         });
 
         it('TC 201-5 A user was added succesfully', (done) => {
-            chai.request(server).post('/api/user').send({
+            chai.request(server).post('/api/user').auth(testToken, { type: 'bearer' }).send({
                 firstName: "first",
                 lastName: "last",
                 street: "street",
@@ -140,7 +168,7 @@ describe('Manage users api/user', () => {
 
                 let { status, result } = res.body;
                 status.should.be.a('number');
-                result.should.be.an('object').that.includes.keys('firstName', 'lastName', 'street', 'city', 'isActive', 'emailAdress', 'password');
+                result.should.be.an('object').that.includes.keys('id', 'firstName', 'lastName', 'isActive', 'emailAdress', 'password', 'phoneNumber', 'street', 'city');
                 
                 done();
             });
@@ -148,7 +176,6 @@ describe('Manage users api/user', () => {
     });
 
     describe('UC-202 get all users', () => {
-        var run = false;
         beforeEach((done) => {
             //Connect to the database
             dbconnection.getConnection(function (connError, conn) {
@@ -168,12 +195,37 @@ describe('Manage users api/user', () => {
             });
         });
 
-        // it('TC-202-1 Should return zero users', (done) => {
+        it('TC-202-1 Should return zero users', (done) => {
+            dbconnection.getConnection(function (connError, conn) {
+                if (connError) throw connError;
 
-        // });
+                //Empty database
+                conn.query(CLEAR_DB, function (dbError, results, fields) {
+                        // When done with the connection, release it.
+                        conn.release();
+
+                        chai.request(server).get('/api/user').auth(testToken, { type: 'bearer' })
+                        .end((err, res) => {
+                            // Handle error after the release.
+                            if (dbError) throw dbError;
+
+                            res.should.have.status(200);
+                            res.should.be.an('object');
+                            res.body.should.be.an('object').that.has.all.keys('status', 'result');
+
+                            let { status, result } = res.body;
+                            status.should.be.a('number');
+                            result.should.be.an('array').that.is.empty;
+                            
+                            done();
+                        });
+                    }
+                )
+            });
+        });
 
         it('TC-202-2 Should return a list of 2 users', (done) => {
-            chai.request(server).get('/api/user')
+            chai.request(server).get('/api/user').auth(testToken, { type: 'bearer' })
             .end((err, res) => {
                 assert.ifError(err);
 
@@ -184,30 +236,82 @@ describe('Manage users api/user', () => {
                 let { status, result } = res.body;
                 status.should.be.a('number');
                 result.should.be.an('array');
-                // result.length.should.be(2);
+                result.should.have.lengthOf(2);
                 for(user of result) {
-                    user.should.include.all.keys('id', 'firstName', 'lastName', 'street', 'city', 'isActive', 'emailAdress', 'password', 'roles');
+                    user.should.include.all.keys('id', 'firstName', 'lastName', 'isActive', 'emailAdress', 'phoneNumber', 'roles', 'street', 'city');
                 }
 
                 done();
             });
         });
 
-        // it("UC-202-3 Should return an empty list by searching for an non-existing name", (done) => {
+        it("UC-202-3 Should return an empty list by searching for an non-existing name", (done) => {
+            chai.request(server).get('/api/user?firstName=nonExistingFirstName&lastName=nonExistingLastName').auth(testToken, { type: 'bearer' })
+            .end((err, res) => {
+                assert.ifError(err);
 
-        // });
+                res.should.have.status(200);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+
+                let { status, result } = res.body;
+                status.should.be.a('number');
+                result.should.be.an('array').that.is.empty;
+                
+                done();
+            });
+        });
     
-        // it("UC-202-4 Should return a list of user filtered by non-active status", (done) => {
-            
-        // });
+        it("UC-202-4 Should return a list of user filtered by non-active status", (done) => {
+            chai.request(server).get('/api/user?isActive=0').auth(testToken, { type: 'bearer' })
+            .end((err, res) => {
+                assert.ifError(err);
 
-        // it("UC-202-5 Should return a list of user filtered by active status", (done) => {
+                res.should.have.status(200);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'result');
 
-        // });
+                let { status, result } = res.body;
+                status.should.be.a('number');
+                result.should.be.an('array').that.is.empty;
+                
+                done();
+            });     
+        });
 
-        // it("UC-202-5 Should return alist by searching for an existing name", (done) => {
+        it("UC-202-5 Should return a list of user filtered by active status", (done) => {
+            chai.request(server).get('/api/user?isActive=1').auth(testToken, { type: 'bearer' })
+            .end((err, res) => {
+                assert.ifError(err);
 
-        // });
+                res.should.have.status(200);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+
+                let { status, result } = res.body;
+                status.should.be.a('number');
+                result.should.be.an('array').that.has.a.lengthOf(2);
+                
+                done();
+            });
+        });
+
+        it("UC-202-5 Should return alist by searching for an existing name", (done) => {
+            chai.request(server).get('/api/user?firstName=test&lastName=test').auth(testToken, { type: 'bearer' })
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(200);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+
+                let { status, result } = res.body;
+                status.should.be.a('number');
+                result.should.be.an('array').that.has.a.lengthOf(1);
+                
+                done();
+            });
+        });
     });
 
     // describe('UC-203 get user profile', () => {
@@ -239,7 +343,7 @@ describe('Manage users api/user', () => {
         // });
 
         it(`TC-204-2 If the user doesn't exist, a valid error should be returned.`, (done) => {
-            chai.request(server).get('/api/user/0')
+            chai.request(server).get('/api/user/0').auth(testToken, { type: 'bearer' })
             .end((err, res) => {
                 assert.ifError(err);
 
@@ -256,7 +360,7 @@ describe('Manage users api/user', () => {
         });
 
         it('TC-204-3 User exists and returns the correct keys', (done) => {
-            chai.request(server).get('/api/user/1')
+            chai.request(server).get('/api/user/1').auth(testToken, { type: 'bearer' })
             .end((err, res) => {
                 assert.ifError(err);
 
@@ -267,7 +371,7 @@ describe('Manage users api/user', () => {
                 let { status, result } = res.body;
                 status.should.be.a('number');
                 result.should.be.a('object');
-                result.should.include.all.keys('id', 'firstName', 'lastName', 'street', 'city', 'isActive', 'emailAdress', 'password', 'roles');
+                result.should.include.all.keys('id', 'firstName', 'lastName', 'isActive', 'emailAdress', 'phoneNumber', 'roles', 'street', 'city');
 
                 done();
             });
@@ -295,7 +399,7 @@ describe('Manage users api/user', () => {
         });
 
         it('TC 205-1 When a required input is missing, a valid error should be returned', (done) => {
-            chai.request(server).put('/api/user/1').send({
+            chai.request(server).put('/api/user/1').auth(testToken, { type: 'bearer' }).send({
                 //Firstname is missing
                 lastName: "Doe",
                 street: "Lovensdijkstraat 61",
@@ -342,7 +446,7 @@ describe('Manage users api/user', () => {
                 password: "newSecret"
             }
 
-            chai.request(server).put(`/api/user/${id}`).send(newUserInfo)
+            chai.request(server).put(`/api/user/${id}`).auth(testToken, { type: 'bearer' }).send(newUserInfo)
             .end((errorUpdate, res) => {
                 assert.ifError(errorUpdate);
 
@@ -373,7 +477,7 @@ describe('Manage users api/user', () => {
                 password: "verySecret"
             }
 
-            chai.request(server).put(`/api/user/${id}`).send(newUserInfo)
+            chai.request(server).put(`/api/user/${id}`).auth(testToken, { type: 'bearer' }).send(newUserInfo)
             .end((errorUpdate, res) => {
                 assert.ifError(errorUpdate);
 
@@ -385,7 +489,7 @@ describe('Manage users api/user', () => {
                 status.should.be.a('number');
                 message.should.be.a('string');
 
-                chai.request(server).get(`/api/user/${id}`)
+                chai.request(server).get(`/api/user/${id}`).auth(testToken, { type: 'bearer' })
                 .end((errorGet, res) => {
                     assert.ifError(errorGet);
 
@@ -433,7 +537,7 @@ describe('Manage users api/user', () => {
         it("TC-206-1 If the user doesn't exist, a valid error should be returned", (done) => {
             const id = 0;
 
-            chai.request(server).delete(`/api/user/${id}`)
+            chai.request(server).delete(`/api/user/${id}`).auth(testToken, { type: 'bearer' })
             .end((errorUpdate, res) => {
                 assert.ifError(errorUpdate);
 
@@ -460,7 +564,7 @@ describe('Manage users api/user', () => {
         it('TC-206-4 Deleted the user succesfully', (done) => {
             const id = 1;
 
-            chai.request(server).delete(`/api/user/${id}`)
+            chai.request(server).delete(`/api/user/${id}`).auth(testToken, { type: 'bearer' })
             .end((errorUpdate, res) => {
                 assert.ifError(errorUpdate);
 
@@ -471,7 +575,7 @@ describe('Manage users api/user', () => {
                 let { status, message } = res.body;
                 status.should.be.a('number');
 
-                chai.request(server).get(`/api/user/${id}`)
+                chai.request(server).get(`/api/user/${id}`).auth(testToken, { type: 'bearer' })
                 .end((errorGet, res) => {
                     assert.ifError(errorGet);
 
