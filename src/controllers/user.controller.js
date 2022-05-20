@@ -266,8 +266,8 @@ let controller = {
                 conn.release();
                 
                 // Handle error after the release.
-                logger.error(dbError);
                 if(dbError) {
+                    logger.error(dbError);
                     res.status(500).json({
                         status: 500,
                         result: "Error"
