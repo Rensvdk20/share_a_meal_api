@@ -20,17 +20,36 @@ const CLEAR_DB = CLEAR_MEAL_TABLE + CLEAR_PARTICIPANTS_TABLE + CLEAR_USERS_TABLE
 //Insert user sql
 const INSERT_USER_1 =
     'INSERT INTO `user` (`id`, `firstName`, `lastName`, `isActive`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
-    '(1, "first", "last", 1, "d.ambesi@avans.nl", "verySecr3t", "street", "city");';
+    '(1, "first", "last", 1, "d.ambesi@avans.nl", "$2a$10$GQRpCryR8kYteH.l2.wBz.wuHBZR9pjz/KfMSDoMBRrU3A/kod5ye", "street", "city");';
 
 const INSERT_USER_2 =
     'INSERT INTO `user` (`id`, `firstName`, `lastName`,  `isActive`, `emailAdress`, `password`, `street`, `city` ) VALUES' +
-    '(2, "test", "test", 1, "test@server.com", "verySecr3t", "test", "test");';
+    '(2, "test", "test", 1, "test@server.com", "$2a$10$TWAvlgLc/KB8A0J/PGNBQeUkzwFrRE1gP0oS9owPI9.PEBTTPTtMO", "test", "test");';
 
 chai.should();
 chai.use(chaiHttp);
 
 describe('Manage users api/user', () => {
     describe('UC-101 Login', () => {
+        beforeEach((done) => {
+            //Connect to the database
+            dbconnection.getConnection(function (connError, conn) {
+                if (connError) throw connError;
+
+                //Empty database for testing
+                conn.query(CLEAR_DB, function (dbError, results, fields) {
+                        // When done with the connection, release it.
+                        conn.release();
+
+                        // Handle error after the release.
+                        if (dbError) throw dbError;
+
+                        done();
+                    }
+                )
+            });
+        });
+
         it('TC-101-1 When a required input is missing, a valid error should be returned', (done) => {
             chai.request(server).post('/api/auth/login').auth(testToken, { type: 'bearer' }).send({
                 emailAdress: "j.doe@server.com",
@@ -91,6 +110,60 @@ describe('Manage users api/user', () => {
                 
                 done();
             });
+        });
+    });
+
+    it(`TC-101-4 If the user doesn't exist, a valid message should be returned`, (done) => {
+        chai.request(server).post('/api/auth/login').auth(testToken, { type: 'bearer' }).send({
+            emailAdress: "thisUserDoesnt@exist.com",
+            password: "verySecr3t"
+        })
+        .end((err, res) => {
+            assert.ifError(err);
+
+            res.should.have.status(404);
+            res.should.be.an('object');
+            res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+            let { status, message } = res.body;
+            status.should.be.a('number');
+            message.should.be.a('string').that.equals('User not found or password invalid');
+            
+            done();
+        });
+    });
+
+    it(`TC-101-5 User succesfully logged in`, (done) => {
+        dbconnection.getConnection(function (connError, conn) {
+            if (connError) throw connError;
+
+            //Empty database for testing
+            conn.query(CLEAR_DB + INSERT_USER_1, function (dbError, results, fields) {
+                    // When done with the connection, release it.
+                    conn.release();
+
+                    // Handle error after the release.
+                    if (dbError) throw dbError;
+
+                    chai.request(server).post('/api/auth/login').auth(testToken, { type: 'bearer' }).send({
+                        emailAdress: "d.ambesi@avans.nl",
+                        password: "verySecr3t"
+                    })
+                    .end((err, res) => {
+                        assert.ifError(err);
+            
+                        res.should.have.status(200);
+                        res.should.be.an('object');
+                        res.body.should.be.an('object').that.has.all.keys('status', 'result');
+            
+                        let { status, result } = res.body;
+                        status.should.be.a('number');
+                        result.should.be.an('object').that.includes.keys('id', 'emailAdress', 'firstName', 'lastName', 'token');
+                        
+                        done();
+                    });
+                }
+            )
         });
     });
 

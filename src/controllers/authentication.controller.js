@@ -46,16 +46,15 @@ module.exports = {
                                 jwt.sign(payload, jwtSecretKey, { expiresIn: '12d' }, function (err, token) {
                                     logger.debug('User logged in, sending: ', userinfo);
                                     res.status(200).json({
-                                        statusCode: 200,
-                                        results: { ...userinfo, token },
+                                        status: 200,
+                                        result: { ...userinfo, token },
                                     });
                                 });
                             } else {
                                 logger.info('User not found or password invalid');
-                                res.status(401).json({
-                                    status: 401,
+                                res.status(404).json({
+                                    status: 404,
                                     message: 'User not found or password invalid',
-                                    datetime: new Date().toISOString(),
                                 })
                             }
                         }
