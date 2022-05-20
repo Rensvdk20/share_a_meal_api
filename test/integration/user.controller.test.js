@@ -70,7 +70,7 @@ describe('Manage users api/user', () => {
 
                 let { status, message } = res.body;
                 status.should.be.a('number');
-                message.should.be.a('string').that.contains('Firstname must be a string');
+                message.should.be.a('string').that.equals('Firstname must be a string');
                 
                 done();
             });
@@ -97,15 +97,38 @@ describe('Manage users api/user', () => {
 
                 let { status, message } = res.body;
                 status.should.be.a('number');
-                message.should.be.a('string').that.contains('Email is not valid');
+                message.should.be.a('string').that.equals('Email is not valid');
                 
                 done();
             });
         });
 
-        // it('TC 201-3 If the password is invalid, a valid error should be returned', (done) => {
-            
-        // });
+        it('TC 201-3 If the password is invalid, a valid error should be returned', (done) => {
+            chai.request(server).post('/api/user').auth(testToken, { type: 'bearer' }).send({
+                //Firstname is missing
+                firstName: "John",
+                lastName: "Doe",
+                street: "Lovensdijkstraat 61",
+                city: "Breda",
+                isActive: true,
+                emailAdress: "j.doe@server.com",
+                phoneNumber: "+31612345678",
+                password: "s3cret"
+            })
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(400);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Password must contain at least one uppercase letter, one number and be 8 characters long');
+                
+                done();
+            });  
+        });
 
         it('TC 201-4 If the email is already in use, a valid error should be returned', (done) => {
             //Connect to the database
@@ -139,7 +162,7 @@ describe('Manage users api/user', () => {
             
                             let { status, message } = res.body;
                             status.should.be.a('number');
-                            message.should.be.a('string').that.contains('Email is already used');
+                            message.should.be.a('string').that.equals('Email is already used');
                             
                             done();
                         });
@@ -353,7 +376,7 @@ describe('Manage users api/user', () => {
 
                 let { status, message } = res.body;
                 status.should.be.a('number');
-                message.should.be.a('string').that.contains('User does not exist');
+                message.should.be.a('string').that.equals('User does not exist');
 
                 done();
             });
@@ -418,7 +441,7 @@ describe('Manage users api/user', () => {
 
                 let { status, message } = res.body;
                 status.should.be.a('number');
-                message.should.be.a('string').that.contains('Firstname must be a string');
+                message.should.be.a('string').that.equals('Firstname must be a string');
                 
                 done();
             });
@@ -456,7 +479,7 @@ describe('Manage users api/user', () => {
 
                 let { status, result } = res.body;
                 status.should.be.a('number');
-                result.should.be.a('string').that.contains('User does not exist');
+                result.should.be.a('string').that.equals('User does not exist');
             });
         });
 
@@ -547,7 +570,7 @@ describe('Manage users api/user', () => {
 
                 let { status, message } = res.body;
                 status.should.be.a('number');
-                message.should.be.a('string').that.contains('User does not exist');
+                message.should.be.a('string').that.equals('User does not exist');
 
                 done();
             });
@@ -585,7 +608,7 @@ describe('Manage users api/user', () => {
 
                     let { status, message } = res.body;
                     status.should.be.a('number');
-                    message.should.be.a('string').that.contains('User does not exist');
+                    message.should.be.a('string').that.equals('User does not exist');
 
                     done();
                 });
