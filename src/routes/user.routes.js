@@ -12,7 +12,7 @@ router.post("/user", authController.validateToken, userController.validateUser, 
 router.get("/user", authController.validateToken, userController.getAllUsers);
 
 //Request current user profile
-router.get("/user/profile", userController.getUserProfile)
+router.get("/user/profile", authController.validateToken, userController.getUserProfile)
 
 //Get user by id
 router.get("/user/:id", authController.validateToken,userController.validateId, userController.getUserById)

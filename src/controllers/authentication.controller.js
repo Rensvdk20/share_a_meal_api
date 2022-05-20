@@ -102,7 +102,6 @@ module.exports = {
                     res.status(401).json({
                         status: 401,
                         message: 'Not authorized',
-                        datetime: new Date().toISOString(),
                     })
                 } else if (payload) {
                     logger.debug('token is valid', payload)

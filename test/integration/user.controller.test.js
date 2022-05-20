@@ -456,7 +456,7 @@ describe('Manage users api/user', () => {
             });
         });
 
-        it("UC-202-5 Should return alist by searching for an existing name", (done) => {
+        it("UC-202-5 Should return a list by searching for an existing name", (done) => {
             chai.request(server).get('/api/user?firstName=test&lastName=test').auth(testToken, { type: 'bearer' })
             .end((err, res) => {
                 assert.ifError(err);
@@ -474,9 +474,41 @@ describe('Manage users api/user', () => {
         });
     });
 
-    // describe('UC-203 get user profile', () => {
-    //     //Not yet implemented
-    // });
+    describe('UC-203 get user profile', () => {
+        it('TC-203-1 If the token is invalid, a valid error should be returned', (done) => {
+            chai.request(server).get('/api/user/profile').auth("thisTokenDoesntWork", { type: 'bearer' })
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(401);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Not authorized');
+                
+                done();
+            });
+        });
+
+        it('TC-203-2 Token is valid', (done) => {
+            chai.request(server).get('/api/user/profile').auth(testToken, { type: 'bearer' })
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(200);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+
+                let { status, result } = res.body;
+                status.should.be.a('number');
+                result.should.include.all.keys('id', 'firstName', 'lastName', 'isActive', 'emailAdress', 'password', 'phoneNumber', 'roles', 'street', 'city');
+                
+                done();
+            });
+        });
+    });
 
     describe('UC-204 get a user by id', () => {
         beforeEach((done) => {
