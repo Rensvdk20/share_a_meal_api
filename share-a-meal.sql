@@ -40,7 +40,7 @@ CREATE TABLE `meal` (
   `allergenes` set('gluten','lactose','noten') NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   KEY `FK_e325266e1b4188f981a00677580` (`cookId`),
-  CONSTRAINT `FK_e325266e1b4188f981a00677580` FOREIGN KEY (`cookId`) REFERENCES `user` (`id`)
+  CONSTRAINT `FK_e325266e1b4188f981a00677580` FOREIGN KEY (`cookId`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -125,11 +125,11 @@ CREATE TABLE `user` (
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
 INSERT INTO `user` VALUES 
-(1,'Mariëtte','van den Dullemen',1,'m.vandullemen@server.nl','secret','','','',''),
-(2,'John','Doe',1,'j.doe@server.com','secret','06 12425475','editor,guest','',''),
-(3,'Herman','Huizinga',1,'h.huizinga@server.nl','secret','06-12345678','editor,guest','',''),
-(4,'Marieke','Van Dam',0,'m.vandam@server.nl','secret','06-12345678','editor,guest','',''),
-(5,'Henk','Tank',1,'h.tank@server.com','secret','06 12425495','editor,guest','','');
+(1,'Mariëtte','van den Dullemen',1,'m.vandullemen@server.nl','$2a$10$2hVezbXSjDcLW7jRQzkrV.Smnu2wIobYYxTPyVSXBE7cWf/uY.4rq','','','',''),
+(2,'John','Doe',1,'j.doe@server.com','$2a$10$7rFklPAt9V0Pnmq5LTlxD.LpbXy6O1u2j/N0XAooESE98NL94Gj8e','06 12425475','editor,guest','',''),
+(3,'Herman','Huizinga',1,'h.huizinga@server.nl','$2a$10$zuqB4ow.D/1EJ7iR/R2o/O8IQpmMXvTMk/QjTojmDNsnMRKmb7G9y','06-12345678','editor,guest','',''),
+(4,'Marieke','Van Dam',0,'m.vandam@server.nl','$2a$10$qg3K.eXkM9ESVy72AhdgtufJsL3KOi/Rkh3dMXLdxGnR7wj9u/L8S','06-12345678','editor,guest','',''),
+(5,'Henk','Tank',1,'h.tank@server.com','$2a$10$aTCF763ID8eMnoLoPDVO5ubS/j2W5lW5kXt1a3WXcBAEUnIkVheyO','06 12425495','editor,guest','','');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
