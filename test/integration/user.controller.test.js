@@ -30,6 +30,70 @@ chai.should();
 chai.use(chaiHttp);
 
 describe('Manage users api/user', () => {
+    describe('UC-101 Login', () => {
+        it('TC-101-1 When a required input is missing, a valid error should be returned', (done) => {
+            chai.request(server).post('/api/auth/login').auth(testToken, { type: 'bearer' }).send({
+                emailAdress: "j.doe@server.com",
+                //Password is missing
+            })
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(400);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Password must be a string');
+                
+                done();
+            });
+        });
+
+        it('TC-101-2 When a non-valid email is used, a valid error should be returned', (done) => {
+            chai.request(server).post('/api/auth/login').auth(testToken, { type: 'bearer' }).send({
+                //Email is not a string
+                emailAdress: 45656456,
+                password: "verySecr3t"
+            })
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(400);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Email must be a string');
+                
+                done();
+            });
+        });
+
+        it('TC-101-3 When a non-valid password is used, a valid error should be returned', (done) => {
+            chai.request(server).post('/api/auth/login').auth(testToken, { type: 'bearer' }).send({
+                emailAdress: "j.doe@server.com",
+                //Password is not a string
+                password: 45564456
+            })
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(400);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Password must be a string');
+                
+                done();
+            });
+        });
+    });
+
     describe('UC-201 add user', () => {
         beforeEach((done) => {
             //Connect to the database

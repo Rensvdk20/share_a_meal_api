@@ -69,15 +69,14 @@ module.exports = {
         let user = req.body;
         // Verify the input
         try {
-            assert(typeof user.emailAdress === 'string', 'email must be a string.');
-            assert(typeof user.password === 'string', 'password must be a string.');
+            assert(typeof user.emailAdress === 'string', 'Email must be a string');
+            assert(typeof user.password === 'string', 'Password must be a string');
 
             next();
-        } catch (ex) {
-            res.status(422).json({
-                status: 422,
-                message: ex.toString(),
-                datetime: new Date().toISOString(),
+        } catch (err) {
+            res.status(400).json({
+                status: 400,
+                message: err.message,
             })
         }
     },
