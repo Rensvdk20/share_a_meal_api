@@ -3,6 +3,8 @@ const assert = require('assert');
 const { off } = require('process');
 
 const dbconnection = require('../database/dbconnection');
+const saltRounds = parseInt(process.env.SALT_ROUNDS);
+const bcrypt = require('bcrypt');
 const logger = require('../config/tracer_config').logger;
 const emailValidator = require("email-validator");
 
@@ -74,6 +76,9 @@ let controller = {
                     message: "Password must contain at least one uppercase letter, one number and be 8 characters long"
                 }); return;
             }
+
+            //Hash the password
+            user.password = bcrypt.hashSync(user.password, saltRounds);
             
             //Insert the user object into the database
             conn.query(`INSERT INTO user SET ?`, user, function (dbError, result, fields) {
@@ -136,13 +141,13 @@ let controller = {
                 
                 // Handle error after the release.
                 if (dbError) {
-                    logger.error(dbError);
                     if(dbError.errno === 1064) {
                         res.status(400).json({
                             status: 400,
                             message: "Something went wrong with the filter URL"
                         }); return;
                     } else {
+                        logger.error(dbError);
                         res.status(500).json({
                             status: 500,
                             result: "Error"
@@ -235,7 +240,7 @@ let controller = {
                             result: "User does not exist"
                         });
                     } else {
-                        logger.debug(dbError);
+                        logger.error(dbError);
                         res.status(500).json({
                             status: 500,
                             result: "Error"
@@ -261,6 +266,7 @@ let controller = {
                 conn.release();
                 
                 // Handle error after the release.
+                logger.error(dbError);
                 if(dbError) {
                     res.status(500).json({
                         status: 500,

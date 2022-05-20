@@ -1,5 +1,7 @@
 const assert = require('assert');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+
 const dbconnection = require('../database/dbconnection');
 const logger = require('../../src/config/tracer_config').logger;
 const jwtSecretKey = require('../config/jwt_config').secretKey;
@@ -31,7 +33,7 @@ module.exports = {
 
                         if (rows) {
                             // Check the password
-                            if (rows && rows.length === 1 && rows[0].password == user.password) {
+                            if (rows && rows.length === 1 && bcrypt.compareSync(user.password, rows[0].password)) {
                                 logger.info('passwords DID match, sending userinfo and valid token');
 
                                 // Extract the password from the userdata
