@@ -8,8 +8,9 @@ const { get } = require("express/lib/response");
 app.use(bodyParser.json());
 
 const logger = require('./src/config/tracer_config').logger;
-const authRoutes = require('./src/routes/authentication.routes');
 const userRoutes = require("./src/routes/user.routes");
+const authRoutes = require('./src/routes/authentication.routes');
+const mealRoutes = require('./src/routes/meal.routes');
 
 app.all("*", (req, res, next) => {
     const method = req.method;
@@ -18,8 +19,10 @@ app.all("*", (req, res, next) => {
     next();
 });
 
-app.use('/api', authRoutes)
-app.use('/api', userRoutes);
+const baseURL = '/api';
+app.use(baseURL, authRoutes);
+app.use(baseURL, userRoutes);
+app.use(baseURL, mealRoutes);
 
 app.get("/", (req, res) => {
     res.status(200).json({

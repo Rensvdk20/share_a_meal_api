@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user.controller');
-const authController = require('../controllers/authentication.controller')
+const authController = require('../controllers/authentication.controller');
 
 //########## Users ###############
 
@@ -15,12 +15,12 @@ router.get("/user", authController.validateToken, userController.getAllUsers);
 router.get("/user/profile", authController.validateToken, userController.getUserProfile)
 
 //Get user by id
-router.get("/user/:id", authController.validateToken,userController.validateId, userController.getUserById)
+router.get("/user/:id", authController.validateToken, userController.validateId, userController.getUserById)
 
 //Update user
-router.put("/user/:id", authController.validateToken,userController.validateId, userController.validateUser, userController.updateUser);
+router.put("/user/:id", authController.validateToken, userController.validateId, userController.validateUser, userController.updateUser);
 
 //Delete user
-router.delete("/user/:id", authController.validateToken,userController.validateId, userController.deleteUser);
+router.delete("/user/:id", authController.validateToken, userController.validateId, userController.deleteUser);
 
 module.exports = router;
