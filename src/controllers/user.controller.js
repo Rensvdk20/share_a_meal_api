@@ -294,12 +294,22 @@ let controller = {
     },
     deleteUser: (req, res) => {
         const userId = req.params.id;
+        const tokenUserId = req.userId;
         dbconnection.getConnection(function(connError, conn) {
             //Not connected
             if (connError) {
                 res.status(502).json({
                     status: 502,
                     result: "Couldn't connect to database"
+                }); return;
+            }
+
+            logger.debug("UserId =", userId);
+            logger.debug("TokenUserId =", tokenUserId);
+            if(userId != tokenUserId) {
+                res.status(401).json({
+                    status: 401,
+                    message: 'Not authorized',
                 }); return;
             }
             
