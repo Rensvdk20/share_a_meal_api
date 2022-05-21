@@ -251,6 +251,15 @@ let controller = {
                     result: "Couldn't connect to database"
                 }); return;
             }
+
+            //Check if the phonenumber is valid
+            const phoneNumberRegex = /(^\+[0-9]{2}|^\+[0-9]{2}\(0\)|^\(\+[0-9]{2}\)\(0\)|^00[0-9]{2}|^0)([0-9]{9}$|[0-9\-\s]{10}$)/gm
+            if(!phoneNumberRegex.test(newUserInfo.phoneNumber)) {
+                res.status(400).json({
+                    status: 400,
+                    message: "Invalid phonenumber (Examples: +31612345678, 0612345678)"
+                }); return;
+            }
             
             conn.query('UPDATE user SET ? WHERE id = ?', [newUserInfo, userId], function (dbError, results, fields) {
                 // When done with the connection, release it.

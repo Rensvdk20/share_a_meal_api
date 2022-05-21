@@ -629,13 +629,32 @@ describe('Manage users api/user', () => {
             });
         });
 
-         // it('TC 205-2 If an invalid postalcode is used, a valid error should be returned', (done) => {
+        it('TC 205-3 If an invalid phonenumber is used, a valid error should be returned', (done) => {
+            chai.request(server).put('/api/user/1').auth(testToken, { type: 'bearer' }).send({
+                //Firstname is missing
+                firstName: "John",
+                lastName: "Doe",
+                street: "Lovensdijkstraat 61",
+                city: "Breda",
+                isActive: true,
+                emailAdress: "j.doe@server.com",
+                phoneNumber: "567843",
+                password: "verySecr3t"
+            })
+            .end((err, res) => {
+                assert.ifError(err);
 
-        // });
+                res.should.have.status(400);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
 
-        // it('TC 205-3 If an invalid phonenumber is used, a valid error should be returned', (done) => {
-            
-        // });
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Invalid phonenumber (Examples: +31612345678, 0612345678)');
+                
+                done();
+            });
+        });
 
         it("TC-205-4 If the user doesn't exist, a valid error should be returned", () => {
             const id = 0;
@@ -665,9 +684,32 @@ describe('Manage users api/user', () => {
             });
         });
 
-        // it("TC-205-5 Not logged in", () => {
+        it("TC-205-5 Not logged in", (done) => {
+            chai.request(server).put('/api/user/1').auth("AnotherTokenThatDoesntExist", { type: 'bearer' }).send({
+                //Firstname is missing
+                firstName: "John",
+                lastName: "Doe",
+                street: "Lovensdijkstraat 61",
+                city: "Breda",
+                isActive: true,
+                emailAdress: "j.doe@server.com",
+                phoneNumber: "+31612345678",
+                password: "verySecr3t"
+            })
+            .end((err, res) => {
+                assert.ifError(err);
 
-        // });
+                res.should.have.status(401);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Not authorized');
+                
+                done();
+            });      
+        });
 
         it('TC-205-6 Succesfully updates the user', (done) => {
             const id = 1;
@@ -758,9 +800,22 @@ describe('Manage users api/user', () => {
             });
         });
 
-        // it('TC-206-2 Not logged in', (done) => {
-            
-        // });
+        it('TC-206-2 Not logged in', (done) => {
+            chai.request(server).delete(`/api/user/1`).auth("AndYetAnotherNonExistingToken", { type: 'bearer' })
+            .end((errorUpdate, res) => {
+                assert.ifError(errorUpdate);
+
+                res.should.have.status(401);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Not authorized');
+
+                done();
+            });
+        });
 
         // it('TC-206-3 Actor is not the owner', (done) => {
             
