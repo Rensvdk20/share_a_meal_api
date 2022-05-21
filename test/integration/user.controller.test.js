@@ -530,9 +530,22 @@ describe('Manage users api/user', () => {
             });
         });
 
-        // it('TC-204-1 Token not valid', (done) => {
+        it('TC-204-1 Token is invalid', (done) => {
+            chai.request(server).get('/api/user/1').auth('thisTokenAlsoDoesntExist', { type: 'bearer' })
+            .end((err, res) => {
+                assert.ifError(err);
 
-        // });
+                res.should.have.status(401);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Not authorized');
+
+                done();
+            });
+        });
 
         it(`TC-204-2 If the user doesn't exist, a valid error should be returned.`, (done) => {
             chai.request(server).get('/api/user/0').auth(testToken, { type: 'bearer' })

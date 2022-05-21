@@ -27,7 +27,6 @@ module.exports = {
                             res.status(500).json({
                                 status: 500,
                                 message: err.toString(),
-                                datetime: new Date().toISOString()
                             })
                         }
 
