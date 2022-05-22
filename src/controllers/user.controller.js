@@ -262,7 +262,7 @@ let controller = {
             }
 
             //Hash the password
-            newUserInfo.password = bcrypt.hashSync(user.password, saltRounds);
+            newUserInfo.password = bcrypt.hashSync(newUserInfo.password, saltRounds);
             
             conn.query('UPDATE user SET ? WHERE id = ?', [newUserInfo, userId], function (dbError, results, fields) {
                 // When done with the connection, release it.

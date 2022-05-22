@@ -753,7 +753,9 @@ describe('Manage users api/user', () => {
                         result.isActive = true;
                     }
 
-                    result.should.contain(newUserInfo);
+                    let { password, ...newUserInfoCheck } = newUserInfo;
+
+                    result.should.contain(newUserInfoCheck);
 
                     done();
                 });
