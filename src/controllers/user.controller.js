@@ -260,6 +260,9 @@ let controller = {
                     message: "Invalid phonenumber (Examples: +31612345678, 0612345678)"
                 }); return;
             }
+
+            //Hash the password
+            newUserInfo.password = bcrypt.hashSync(user.password, saltRounds);
             
             conn.query('UPDATE user SET ? WHERE id = ?', [newUserInfo, userId], function (dbError, results, fields) {
                 // When done with the connection, release it.
