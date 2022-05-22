@@ -224,36 +224,6 @@ let controller = {
                         message: "Meal does not exist"
                     });
                 }
-
-                // conn.query('UPDATE meal SET ? WHERE id = ?', [mealInfo, mealId], function (dbError, results, fields) {
-                //     // When done with the connection, release it.
-                //     conn.release();
-                    
-                //     // Handle error after the release.
-                //     if(results.affectedRows > 0) {
-                //         res.status(200).json({
-                //             status: 200,
-                //             message: `${mealId} successfully updated`,
-                //             result: {
-                //                 id: mealId,
-                //                 ...mealInfo
-                //             }
-                //         });
-                //     } else {
-                //         if(dbError == null) {
-                //             res.status(400).json({
-                //                 status: 400,
-                //                 result: "User does not exist"
-                //             });
-                //         } else {
-                //             logger.error(dbError);
-                //             res.status(500).json({
-                //                 status: 500,
-                //                 result: "Error"
-                //             });
-                //         }
-                //     }
-                // });
             });
         });
     },
