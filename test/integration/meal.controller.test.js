@@ -72,7 +72,7 @@ describe('Manage meals api/user', () => {
         });
 
         it('TC-301-2 User is not logged in', (done) => {
-            chai.request(server).post('/api/meal').send({
+            chai.request(server).post('/api/meal').auth("", { type: 'bearer' }).send({
                 name: 'Fries',
                 description: "Great fries!",
                 isActive: true,
@@ -93,7 +93,7 @@ describe('Manage meals api/user', () => {
 
                 let { status, message } = res.body;
                 status.should.be.a('number');
-                message.should.be.a('string').that.equals('Authorization header is missing');
+                message.should.be.a('string').that.equals('Not authorized');
                 
                 done();
             });
@@ -190,8 +190,67 @@ describe('Manage meals api/user', () => {
                 result.should.be.an('array');
                 result.should.have.lengthOf(1);
                 for(meal of result) {
-                    meal.should.include.all.keys("id", "cookId", "name", "description", "isActive", "isVega", "isVegan", "isToTakeHome", "dateTime", "maxAmountOfParticipants", "price", "imageUrl")
+                    meal.should.include.all.keys("id", "name", "description", "isActive", "isVega", "isVegan", "isToTakeHome", "dateTime", "maxAmountOfParticipants", "price", "imageUrl", "cookId", "createDate", "updateDate", "allergenes");
                 }
+                
+                done();
+            });
+        });
+    });
+
+    describe('UC-304 Get meal details', () => {
+        beforeEach((done) => {
+            //Connect to the database
+            dbconnection.getConnection(function (connError, conn) {
+                if (connError) throw connError;
+
+                //Empty database for testing and add a user
+                conn.query(CLEAR_DB + INSERT_USER_1, function (dbError, results, fields) {
+
+                    //Add the meal after the user was inserted to use the cookId as foreign key
+                    conn.query(INSERT_MEAL_1, function (dbError, results, fields) {
+                        
+                        // When done with the connection, release it.
+                        conn.release();
+
+                        // Handle error after the release.
+                        if (dbError) throw dbError;
+
+                        done();
+                    });
+                });
+            });
+        });
+
+        it(`TC-304-1 Meal doesn't exist`, (done) => {
+            chai.request(server).get('/api/meal/0')
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(404);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Meal does not exist');
+                
+                done();
+            });
+        });
+
+        it('TC-304-2 Meal details are succesfully returned', (done) => {
+            chai.request(server).get('/api/meal/1')
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(200);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'result');
+
+                let { status, result } = res.body;
+                status.should.be.a('number');
+                result.should.be.an('object').that.has.all.keys("id", "name", "description", "isActive", "isVega", "isVegan", "isToTakeHome", "dateTime", "maxAmountOfParticipants", "price", "imageUrl", "cookId", "createDate", "updateDate", "allergenes");
                 
                 done();
             });
