@@ -158,11 +158,109 @@ let controller = {
         });
     },
     updateMeal: (req, res) => {
-        logger.debug('Update meal by id');
+        const mealInfo = req.body;
+        const mealId = req.params.id;
+        const tokenCookId = req.userId;
+
+        dbconnection.getConnection(function(connError, conn) {
+            //Not connected
+            if (connError) {
+                res.status(502).json({
+                    status: 502,
+                    result: "Couldn't connect to database"
+                }); return;
+            }
+
+            logger.debug("MealId =", mealId);
+            logger.debug("TokenUserId =", tokenCookId);
+
+            conn.query('SELECT cookId FROM meal WHERE id = ?', mealId, function (dbSelectError, selectResults, selectFields) {
+                // When done with the connection, release it.
+                conn.release();
+                
+                // Handle error after the release.
+                if(dbSelectError) {
+                    logger.error(dbSelectError);
+                    res.status(500).json({
+                        status: 500,
+                        result: "Error"
+                    }); return;
+                }
+
+                if(selectResults.length > 0) {
+                    logger.debug("Results:", selectResults);
+                    if(selectResults[0].cookId == tokenCookId) {
+                        conn.query('UPDATE meal SET ? WHERE id = ? AND cookId = ?', [mealInfo, mealId, tokenCookId], function (dbUpdateError, updateResults, updateFields) {
+                            // When done with the connection, release it.
+                            conn.release();
+                            
+                            // Handle error after the release.
+                            if(dbUpdateError) {
+                                logger.error(dbUpdateError);
+                                res.status(500).json({
+                                    status: 500,
+                                    result: "Error"
+                                }); return;
+                            }
+
+                            res.status(200).json({
+                                status: 200,
+                                message: `${mealId} successfully updated`,
+                                result: {
+                                    id: mealId,
+                                    ...mealInfo
+                                }
+                            });
+                        });
+                    } else {
+                        res.status(403).json({
+                            status: 403,
+                            message: "Not the creator of the meal"
+                        });
+                    }
+                } else {
+                    res.status(404).json({
+                        status: 404,
+                        message: "Meal does not exist"
+                    });
+                }
+
+                // conn.query('UPDATE meal SET ? WHERE id = ?', [mealInfo, mealId], function (dbError, results, fields) {
+                //     // When done with the connection, release it.
+                //     conn.release();
+                    
+                //     // Handle error after the release.
+                //     if(results.affectedRows > 0) {
+                //         res.status(200).json({
+                //             status: 200,
+                //             message: `${mealId} successfully updated`,
+                //             result: {
+                //                 id: mealId,
+                //                 ...mealInfo
+                //             }
+                //         });
+                //     } else {
+                //         if(dbError == null) {
+                //             res.status(400).json({
+                //                 status: 400,
+                //                 result: "User does not exist"
+                //             });
+                //         } else {
+                //             logger.error(dbError);
+                //             res.status(500).json({
+                //                 status: 500,
+                //                 result: "Error"
+                //             });
+                //         }
+                //     }
+                // });
+            });
+        });
     },
     deleteMeal: (req, res) => {
         const mealId = req.params.id;
         const tokenCookId = req.userId;
+
         dbconnection.getConnection(function(connError, conn) {
             //Not connected
             if (connError) {

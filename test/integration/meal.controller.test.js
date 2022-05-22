@@ -131,29 +131,235 @@ describe('Manage meals api/user', () => {
         });
     });
 
-    // describe('UC-302 Update meal', () => {
-    //     beforeEach((done) => {
-    //         //Connect to the database
-    //         dbconnection.getConnection(function (connError, conn) {
-    //             if (connError) throw connError;
+    describe('UC-302 Update meal', () => {
+        beforeEach((done) => {
+            //Connect to the database
+            dbconnection.getConnection(function (connError, conn) {
+                if (connError) throw connError;
 
-    //             //Empty database for testing
-    //             conn.query(CLEAR_DB + INSERT_USER_1, function (dbError, results, fields) {
-    //                 // When done with the connection, release it.
-    //                 conn.release();
+                //Empty database for testing and add a user
+                conn.query(CLEAR_DB + INSERT_USER_1, function (dbError, results, fields) {
 
-    //                 // Handle error after the release.
-    //                 if (dbError) throw dbError;
+                    //Add the meal after the user was inserted to use the cookId as foreign key
+                    conn.query(INSERT_MEAL_1, function (dbError, results, fields) {
+                        
+                        // When done with the connection, release it.
+                        conn.release();
 
-    //                 done();
-    //             });
-    //         });
-    //     });
+                        // Handle error after the release.
+                        if (dbError) throw dbError;
 
-    //     it('TC-302-1 ', (done) => {
+                        done();
+                    });
+                });
+            });
+        });
 
-    //     });
-    // });
+        it('TC-302-1 When a required input is missing, a valid error should be returned', (done) => {
+            chai.request(server).put('/api/meal/1').auth(testToken, { type: 'bearer' }).send({
+                //Name is missing
+                description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
+                isActive: true,
+                isVega: false,
+                isVegan: false,
+                isToTakeHome: true,
+                dateTime: "1000-01-01 00:00:00",
+                maxAmountOfParticipants: 5,
+                price: 16,
+                imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg"
+            })
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(400);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Name must be a string');
+                
+                done();
+            });
+        });
+
+        it('TC-302-2 Not logged in', (done) => {
+            chai.request(server).put('/api/meal/1').auth("", { type: 'bearer' }).send({
+                name: "Pasta Bolognese met tomaat, spekjes en kaassssssssss",
+                description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
+                isActive: true,
+                isVega: false,
+                isVegan: false,
+                isToTakeHome: true,
+                dateTime: "1000-01-01 00:00:00",
+                maxAmountOfParticipants: 5,
+                price: 16,
+                imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg"
+            })
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(401);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Not authorized');
+                
+                done();
+            });
+        });
+
+        it('TC-302-3 Actor is not the owner', (done) => {
+            dbconnection.getConnection(function (connError, conn) {
+                if (connError) throw connError;
+
+                //Empty database for testing and add a second user
+                conn.query(CLEAR_DB + INSERT_USER_2, function (dbError, results, fields) {
+
+                    //Add the meal after the second user was inserted to use the cookId as foreign key
+                    conn.query(INSERT_MEAL_2, function (dbError, results, fields) {
+                        
+                        // When done with the connection, release it.
+                        conn.release();
+
+                        // Handle error after the release.
+                        if (dbError) throw dbError;
+
+                        chai.request(server).put('/api/meal/2').auth(testToken, { type: 'bearer' }).send({
+                            name: "Pasta Bolognese met tomaat, spekjes en kaassssssssss",
+                            description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
+                            isActive: true,
+                            isVega: false,
+                            isVegan: false,
+                            isToTakeHome: true,
+                            dateTime: "1000-01-01 00:00:00",
+                            maxAmountOfParticipants: 5,
+                            price: 16,
+                            imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg"
+                        })
+                        .end((err, res) => {
+                            assert.ifError(err);
+            
+                            res.should.have.status(403);
+                            res.should.be.an('object');
+                            res.body.should.be.an('object').that.has.all.keys('status', 'message');
+            
+                            let { status, message } = res.body;
+                            status.should.be.a('number');
+                            message.should.be.a('string').that.equals('Not the creator of the meal');
+                            
+                            done();
+                        });
+                    });
+                });
+            });
+        });
+
+        it(`TC-302-4 Meal doesn't exist`, (done) => {
+            chai.request(server).put('/api/meal/0').auth(testToken, { type: 'bearer' }).send({
+                name: "Pasta Bolognese met tomaat, spekjes en kaassssssssss",
+                description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
+                isActive: true,
+                isVega: false,
+                isVegan: false,
+                isToTakeHome: true,
+                dateTime: "1000-01-01 00:00:00",
+                maxAmountOfParticipants: 5,
+                price: 16,
+                imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg"
+            })
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(404);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Meal does not exist');
+                
+                done();
+            });
+        });
+
+        it('TC-302-5 Meal succesfully update', (done) => {
+            const mealId = 1;
+            let newMealInfo = {
+                name: "Pasta Bolognese met tomaat, spekjes en kaassssssssss",
+                description: "Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!",
+                isActive: true,
+                isVega: false,
+                isVegan: false,
+                isToTakeHome: true,
+                dateTime: "1000-01-01 00:00:00",
+                maxAmountOfParticipants: 5,
+                price: 16.75,
+                imageUrl: "https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg"
+            }
+
+            chai.request(server).put(`/api/meal/${mealId}`).auth(testToken, { type: 'bearer' }).send(newMealInfo)
+            .end((errorUpdate, res) => {
+                assert.ifError(errorUpdate);
+
+                res.should.have.status(200);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message', "result");
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string');
+
+                chai.request(server).get(`/api/meal/${mealId}`).auth(testToken, { type: 'bearer' })
+                .end((errorGet, res) => {
+                    assert.ifError(errorGet);
+
+                    res.should.have.status(200);
+                    res.should.be.an('object');
+                    res.body.should.be.an('object').that.has.all.keys('status', 'result');
+
+                    let { status, result } = res.body;
+                    status.should.be.a('number');
+                    result.should.be.a('object');
+
+                    //Convert 0 and 1's to true or false
+                    if(result.isActive === 0) {
+                        result.isActive = false;
+                    } else if(result.isActive === 1) {
+                        result.isActive = true;
+                    }
+    
+                    if(result.isVega === 0) {
+                        result.isVega = false;
+                    } else if(result.isVega === 1) {
+                        result.isVega = true;
+                    }
+    
+                    if(result.isVegan === 0) {
+                        result.isVegan = false;
+                    } else if(result.isVegan === 1) {
+                        result.isVegan = true;
+                    }
+    
+                    if(result.isToTakeHome === 0) {
+                        result.isToTakeHome = false;
+                    } else if(result.isToTakeHome === 1) {
+                        result.isToTakeHome = true;
+                    }
+                    
+                    let { dateTime, ...newMealInfoCheck } = newMealInfo;
+                    result.price = parseFloat(result.price);
+
+                    //Check if the updated version is the same as the one in the database
+                    result.should.contain(newMealInfoCheck);
+
+                    done();
+                });
+            });
+        });
+    });
 
     describe('UC-303 Get all meals', () => {
         beforeEach((done) => {
