@@ -54,7 +54,7 @@ describe('Manage meals api/user', () => {
                 isVega: true,
                 isVegan: false,
                 isToTakeHome: true,
-                dateTime: "2022-05-21T11:13:11.932Z",
+                dateTime: "1000-01-01 00:00:00",
                 maxAmountOfParticipants: 1,
                 price: 4,
                 imageUrl: "https://media.nu.nl/m/n2jxezbayvft_wd1280.jpg/ondernemen-over-de-grens-frietboer-in-china.jpg"
@@ -82,7 +82,7 @@ describe('Manage meals api/user', () => {
                 isVega: true,
                 isVegan: false,
                 isToTakeHome: true,
-                dateTime: "2022-05-21T11:13:11.932Z",
+                dateTime: "1000-01-01 00:00:00",
                 maxAmountOfParticipants: 1,
                 price: 4,
                 imageUrl: "https://media.nu.nl/m/n2jxezbayvft_wd1280.jpg/ondernemen-over-de-grens-frietboer-in-china.jpg"
@@ -110,7 +110,7 @@ describe('Manage meals api/user', () => {
                 isVega: true,
                 isVegan: false,
                 isToTakeHome: true,
-                dateTime: "2022-05-21T11:13:11.932Z",
+                dateTime: "1000-01-01 00:00:00",
                 maxAmountOfParticipants: 1,
                 price: 4,
                 imageUrl: "https://media.nu.nl/m/n2jxezbayvft_wd1280.jpg/ondernemen-over-de-grens-frietboer-in-china.jpg"
