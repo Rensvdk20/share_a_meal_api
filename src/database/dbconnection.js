@@ -3,7 +3,7 @@ const mysql = require('mysql2');
 const logger = require('../config/tracer_config').logger;
 
 const pool = mysql.createPool({
-    connectionLimit : 10,
+    connectionLimit : 100,
     waitForConnections: true,
     queueLimit: 0,
     multipleStatements: true,

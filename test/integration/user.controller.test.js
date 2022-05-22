@@ -111,59 +111,59 @@ describe('Manage users api/user', () => {
                 done();
             });
         });
-    });
 
-    it(`TC-101-4 If the user doesn't exist, a valid message should be returned`, (done) => {
-        chai.request(server).post('/api/auth/login').auth(testToken, { type: 'bearer' }).send({
-            emailAdress: "thisUserDoesnt@exist.com",
-            password: "verySecr3t"
-        })
-        .end((err, res) => {
-            assert.ifError(err);
-
-            res.should.have.status(404);
-            res.should.be.an('object');
-            res.body.should.be.an('object').that.has.all.keys('status', 'message');
-
-            let { status, message } = res.body;
-            status.should.be.a('number');
-            message.should.be.a('string').that.equals('User not found or password invalid');
-            
-            done();
+        it(`TC-101-4 If the user doesn't exist, a valid message should be returned`, (done) => {
+            chai.request(server).post('/api/auth/login').auth(testToken, { type: 'bearer' }).send({
+                emailAdress: "thisUserDoesnt@exist.com",
+                password: "verySecr3t"
+            })
+            .end((err, res) => {
+                assert.ifError(err);
+    
+                res.should.have.status(404);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+    
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('User not found or password invalid');
+                
+                done();
+            });
         });
-    });
-
-    it(`TC-101-5 User succesfully logged in`, (done) => {
-        dbconnection.getConnection(function (connError, conn) {
-            if (connError) throw connError;
-
-            //Empty database for testing
-            conn.query(CLEAR_DB + INSERT_USER_1, function (dbError, results, fields) {
-                    // When done with the connection, release it.
-                    conn.release();
-
-                    // Handle error after the release.
-                    if (dbError) throw dbError;
-
-                    chai.request(server).post('/api/auth/login').auth(testToken, { type: 'bearer' }).send({
-                        emailAdress: "d.ambesi@avans.nl",
-                        password: "verySecr3t"
-                    })
-                    .end((err, res) => {
-                        assert.ifError(err);
-            
-                        res.should.have.status(200);
-                        res.should.be.an('object');
-                        res.body.should.be.an('object').that.has.all.keys('status', 'result');
-            
-                        let { status, result } = res.body;
-                        status.should.be.a('number');
-                        result.should.be.an('object').that.includes.keys('id', 'emailAdress', 'firstName', 'lastName', 'token');
-                        
-                        done();
-                    });
-                }
-            )
+    
+        it(`TC-101-5 User succesfully logged in`, (done) => {
+            dbconnection.getConnection(function (connError, conn) {
+                if (connError) throw connError;
+    
+                //Empty database for testing
+                conn.query(CLEAR_DB + INSERT_USER_1, function (dbError, results, fields) {
+                        // When done with the connection, release it.
+                        conn.release();
+    
+                        // Handle error after the release.
+                        if (dbError) throw dbError;
+    
+                        chai.request(server).post('/api/auth/login').auth(testToken, { type: 'bearer' }).send({
+                            emailAdress: "d.ambesi@avans.nl",
+                            password: "verySecr3t"
+                        })
+                        .end((err, res) => {
+                            assert.ifError(err);
+                
+                            res.should.have.status(200);
+                            res.should.be.an('object');
+                            res.body.should.be.an('object').that.has.all.keys('status', 'result');
+                
+                            let { status, result } = res.body;
+                            status.should.be.a('number');
+                            result.should.be.an('object').that.includes.keys('id', 'emailAdress', 'firstName', 'lastName', 'token');
+                            
+                            done();
+                        });
+                    }
+                )
+            });
         });
     });
 
@@ -456,7 +456,7 @@ describe('Manage users api/user', () => {
             });
         });
 
-        it("UC-202-5 Should return a list by searching for an existing name", (done) => {
+        it("UC-202-6 Should return a list by searching for an existing name", (done) => {
             chai.request(server).get('/api/user?firstName=test&lastName=test').auth(testToken, { type: 'bearer' })
             .end((err, res) => {
                 assert.ifError(err);
@@ -674,7 +674,7 @@ describe('Manage users api/user', () => {
             .end((errorUpdate, res) => {
                 assert.ifError(errorUpdate);
 
-                res.should.have.status(404);
+                res.should.have.status(400);
                 res.should.be.an('object');
                 res.body.should.be.an('object').that.has.all.keys('status', 'result');
 
@@ -836,7 +836,7 @@ describe('Manage users api/user', () => {
             .end((errorDelete, res) => {
                 assert.ifError(errorDelete);
 
-                res.should.have.status(401);
+                res.should.have.status(403);
                 res.should.be.an('object');
                 res.body.should.be.an('object').that.has.all.keys('status', 'message');
 

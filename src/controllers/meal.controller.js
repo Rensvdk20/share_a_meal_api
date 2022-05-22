@@ -144,7 +144,6 @@ let controller = {
                 
                 const result = results[0];
                 if(result) {
-                    logger.warn("result:", result);
                     res.status(200).json({
                         status: 200,
                         result: result
@@ -211,8 +210,8 @@ let controller = {
                             });
                         });
                     } else {
-                        res.status(401).json({
-                            status: 401,
+                        res.status(403).json({
+                            status: 403,
                             message: "Not the creator of the meal"
                         });
                     }

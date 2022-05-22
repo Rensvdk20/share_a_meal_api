@@ -277,8 +277,8 @@ let controller = {
                     });
                 } else {
                     if(dbError == null) {
-                        res.status(404).json({
-                            status: 404,
+                        res.status(400).json({
+                            status: 400,
                             result: "User does not exist"
                         });
                     } else {
@@ -307,8 +307,8 @@ let controller = {
             logger.debug("UserId =", userId);
             logger.debug("TokenUserId =", tokenUserId);
             if(userId != tokenUserId) {
-                res.status(401).json({
-                    status: 401,
+                res.status(403).json({
+                    status: 403,
                     message: 'Not authorized',
                 }); return;
             }

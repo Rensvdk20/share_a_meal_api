@@ -321,7 +321,7 @@ describe('Manage meals api/user', () => {
                         .end((err, res) => {
                             assert.ifError(err);
 
-                            res.should.have.status(401);
+                            res.should.have.status(403);
                             res.should.be.an('object');
                             res.body.should.be.an('object').that.has.all.keys('status', 'message');
 

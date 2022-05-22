@@ -129,7 +129,8 @@ INSERT INTO `user` VALUES
 (2,'John','Doe',1,'j.doe@server.com','$2a$10$7rFklPAt9V0Pnmq5LTlxD.LpbXy6O1u2j/N0XAooESE98NL94Gj8e','06 12425475','editor,guest','',''),
 (3,'Herman','Huizinga',1,'h.huizinga@server.nl','$2a$10$zuqB4ow.D/1EJ7iR/R2o/O8IQpmMXvTMk/QjTojmDNsnMRKmb7G9y','06-12345678','editor,guest','',''),
 (4,'Marieke','Van Dam',0,'m.vandam@server.nl','$2a$10$qg3K.eXkM9ESVy72AhdgtufJsL3KOi/Rkh3dMXLdxGnR7wj9u/L8S','06-12345678','editor,guest','',''),
-(5,'Henk','Tank',1,'h.tank@server.com','$2a$10$aTCF763ID8eMnoLoPDVO5ubS/j2W5lW5kXt1a3WXcBAEUnIkVheyO','06 12425495','editor,guest','','');
+(5,'Henk','Tank',1,'h.tank@server.com','$2a$10$aTCF763ID8eMnoLoPDVO5ubS/j2W5lW5kXt1a3WXcBAEUnIkVheyO','06 12425495','editor,guest','',''),
+(6,'Davide','Ambesi',1,'d.ambesi@avans.nl','$2a$10$aTCF763ID8eMnoLoPDVO5ubS/j2W5lW5kXt1a3WXcBAEUnIkVheyO','06 12425495','editor,guest','','');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
