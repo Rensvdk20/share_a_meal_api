@@ -89,7 +89,6 @@ module.exports = {
             res.status(401).json({
                 status: 401,
                 message: 'Authorization header is missing',
-                datetime: new Date().toISOString(),
             });
         } else {
             // Remove the word 'Bearer ' from the headervalue
