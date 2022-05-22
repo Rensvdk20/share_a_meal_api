@@ -159,60 +159,71 @@ let controller = {
         });
     },
     updateMeal: (req, res) => {
-    logger.debug('Update meal by id');
-    //     const newUserInfo = req.body;
-    //     const userId = req.params.id;
-    //     dbconnection.getConnection(function(connError, conn) {
-    //         //Not connected
-    //         if (connError) {
-    //             res.status(502).json({
-    //                 status: 502,
-    //                 result: "Couldn't connect to database"
-    //             }); return;
-    //         }
-
-    //         //Check if the phonenumber is valid
-    //         const phoneNumberRegex = /(^\+[0-9]{2}|^\+[0-9]{2}\(0\)|^\(\+[0-9]{2}\)\(0\)|^00[0-9]{2}|^0)([0-9]{9}$|[0-9\-\s]{10}$)/gm
-    //         if(!phoneNumberRegex.test(newUserInfo.phoneNumber)) {
-    //             res.status(400).json({
-    //                 status: 400,
-    //                 message: "Invalid phonenumber (Examples: +31612345678, 0612345678)"
-    //             }); return;
-    //         }
-            
-    //         conn.query('UPDATE user SET ? WHERE id = ?', [newUserInfo, userId], function (dbError, results, fields) {
-    //             // When done with the connection, release it.
-    //             conn.release();
-                
-    //             // Handle error after the release.
-    //             if(results.affectedRows > 0) {
-    //                 res.status(200).json({
-    //                     status: 200,
-    //                     message: `${userId} successfully updated`,
-    //                     result: {
-    //                         id: userId,
-    //                         ...newUserInfo
-    //                     }
-    //                 });
-    //             } else {
-    //                 if(dbError == null) {
-    //                     res.status(404).json({
-    //                         status: 404,
-    //                         result: "User does not exist"
-    //                     });
-    //                 } else {
-    //                     logger.error(dbError);
-    //                     res.status(500).json({
-    //                         status: 500,
-    //                         result: "Error"
-    //                     });
-    //                 }
-    //             }
-    //         });
-    //     });
+        logger.debug('Update meal by id');
     },
     deleteMeal: (req, res) => {
-    
+        const mealId = req.params.id;
+        const tokenCookId = req.userId;
+        dbconnection.getConnection(function(connError, conn) {
+            //Not connected
+            if (connError) {
+                res.status(502).json({
+                    status: 502,
+                    result: "Couldn't connect to database"
+                }); return;
+            }
+
+            logger.debug("MealId =", mealId);
+            logger.debug("TokenUserId =", tokenCookId);
+
+            conn.query('SELECT cookId FROM meal WHERE id = ?', mealId, function (dbSelectError, selectResults, selectFields) {
+                // When done with the connection, release it.
+                conn.release();
+                
+                // Handle error after the release.
+                if(dbSelectError) {
+                    logger.error(dbSelectError);
+                    res.status(500).json({
+                        status: 500,
+                        result: "Error"
+                    }); return;
+                }
+
+                if(selectResults.length > 0) {
+                    logger.debug("Results:", selectResults);
+                    if(selectResults[0].cookId == tokenCookId) {
+                        conn.query('DELETE FROM meal WHERE id = ? AND cookId = ?', [mealId, tokenCookId], function (dbDeleteError, deleteResults, deleteFields) {
+                            // When done with the connection, release it.
+                            conn.release();
+                            
+                            // Handle error after the release.
+                            if(dbDeleteError) {
+                                logger.error(dbDeleteError);
+                                res.status(500).json({
+                                    status: 500,
+                                    result: "Error"
+                                }); return;
+                            }
+
+                            res.status(200).json({
+                                status: 200,
+                                message: `Succesfully deleted meal ${mealId}`
+                            });
+                        });
+                    } else {
+                        res.status(401).json({
+                            status: 401,
+                            message: "Not the creator of the meal"
+                        });
+                    }
+                } else {
+                    res.status(404).json({
+                        status: 404,
+                        message: "Meal does not exist"
+                    });
+                }
+            });
+        });
     }
 }
 

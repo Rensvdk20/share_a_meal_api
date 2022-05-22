@@ -18,7 +18,10 @@ const CLEAR_USERS_TABLE = 'DELETE IGNORE FROM `user`;';
 const CLEAR_DB = CLEAR_MEAL_TABLE + CLEAR_PARTICIPANTS_TABLE + CLEAR_USERS_TABLE;
 
 const INSERT_USER_1 = "INSERT INTO `user` (`id`, `firstName`, `lastName`, `isActive`, `emailAdress`, `password`, `phoneNumber`, `roles`, `street`, `city`) VALUES (1, 'Mariëtte', 'van den Dullemen', '1', 'm.vandullemen@server.nl', '$2a$10$2hVezbXSjDcLW7jRQzkrV.Smnu2wIobYYxTPyVSXBE7cWf/uY.4rq', '', '', '', '')";
+const INSERT_USER_2 = "INSERT INTO `user` (`id`, `firstName`, `lastName`, `isActive`, `emailAdress`, `password`, `phoneNumber`, `roles`, `street`, `city`) VALUES (2, 'John', 'Doe', '1', 'j.doe@server.com', '$2a$10$7rFklPAt9V0Pnmq5LTlxD.LpbXy6O1u2j/N0XAooESE98NL94Gj8e', '06 12425475', 'editor,guest', '', '')";
+
 const INSERT_MEAL_1 = "INSERT INTO `meal` (`id`, `isActive`, `isVega`, `isVegan`, `isToTakeHome`, `dateTime`, `maxAmountOfParticipants`, `price`, `imageUrl`, `cookId`, `createDate`, `updateDate`, `name`, `description`, `allergenes`) VALUES (1, '1', '0', '0', '1', '2022-03-22 17:35:00', '4', '12.75', 'https://miljuschka.nl/wp-content/uploads/2021/02/Pasta-bolognese-3-2.jpg', '1', '2022-02-26 18:12:40.048998', '2022-04-26 12:33:51.000000', 'Pasta Bolognese met tomaat, spekjes en kaas', 'Een heerlijke klassieker! Altijd goed voor tevreden gesmikkel!', 'gluten,lactose')";
+const INSERT_MEAL_2 = "INSERT INTO `meal` (`id`, `isActive`, `isVega`, `isVegan`, `isToTakeHome`, `dateTime`, `maxAmountOfParticipants`, `price`, `imageUrl`, `cookId`, `createDate`, `updateDate`, `name`, `description`, `allergenes`) VALUES (2, '1', '1', '0', '0', '2022-05-22 13:35:00', '4', '12.75', 'https://static.ah.nl/static/recepten/img_RAM_PRD159322_1024x748_JPG.jpg', '2', '2022-02-26 18:12:40.048998', '2022-04-25 12:56:05.000000', 'Aubergine uit de oven met feta, muntrijst en tomatensaus', 'Door aubergines in de oven te roosteren worden ze heerlijk zacht. De balsamico maakt ze heerlijk zoet.', 'noten')";
 
 chai.should();
 chai.use(chaiHttp);
@@ -251,6 +254,118 @@ describe('Manage meals api/user', () => {
                 let { status, result } = res.body;
                 status.should.be.a('number');
                 result.should.be.an('object').that.has.all.keys("id", "name", "description", "isActive", "isVega", "isVegan", "isToTakeHome", "dateTime", "maxAmountOfParticipants", "price", "imageUrl", "cookId", "createDate", "updateDate", "allergenes");
+                
+                done();
+            });
+        });
+    });
+
+    describe('UC-305 Delete meal', () => {
+        beforeEach((done) => {
+            //Connect to the database
+            dbconnection.getConnection(function (connError, conn) {
+                if (connError) throw connError;
+
+                //Empty database for testing and add a user
+                conn.query(CLEAR_DB + INSERT_USER_1, function (dbError, results, fields) {
+
+                    //Add the meal after the user was inserted to use the cookId as foreign key
+                    conn.query(INSERT_MEAL_1, function (dbError, results, fields) {
+                        
+                        // When done with the connection, release it.
+                        conn.release();
+
+                        // Handle error after the release.
+                        if (dbError) throw dbError;
+
+                        done();
+                    });
+                });
+            });
+        });
+
+        it('TC-305-2 Not logged in', (done) => {
+            chai.request(server).delete('/api/meal/1').auth("", { type: 'bearer' })
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(401);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Not authorized');
+                
+                done();
+            });
+        });
+
+        it(`TC-305-3 Not the creator of the meal`, (done) => {
+            dbconnection.getConnection(function (connError, conn) {
+                if (connError) throw connError;
+
+                //Empty database for testing and add a second user
+                conn.query(CLEAR_DB + INSERT_USER_2, function (dbError, results, fields) {
+
+                    //Add the meal after the second user was inserted to use the cookId as foreign key
+                    conn.query(INSERT_MEAL_2, function (dbError, results, fields) {
+                        
+                        // When done with the connection, release it.
+                        conn.release();
+
+                        // Handle error after the release.
+                        if (dbError) throw dbError;
+
+                        chai.request(server).delete('/api/meal/2').auth(testToken, { type: 'bearer' })
+                        .end((err, res) => {
+                            assert.ifError(err);
+
+                            res.should.have.status(401);
+                            res.should.be.an('object');
+                            res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                            let { status, message } = res.body;
+                            status.should.be.a('number');
+                            message.should.be.a('string').that.equals('Not the creator of the meal');
+                            
+                            done();
+                        });
+                    });
+                });
+            });
+        });
+
+        it(`TC-305-4 Meal doesn't exist`, (done) => {
+            chai.request(server).delete('/api/meal/0').auth(testToken, { type: 'bearer' })
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(404);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals('Meal does not exist');
+                
+                done();
+            });
+        });
+
+        it(`TC-305-5 Meal succesfully deleted`, (done) => {
+            const meal_id = 1;
+            chai.request(server).delete(`/api/meal/${meal_id}`).auth(testToken, { type: 'bearer' })
+            .end((err, res) => {
+                assert.ifError(err);
+
+                res.should.have.status(200);
+                res.should.be.an('object');
+                res.body.should.be.an('object').that.has.all.keys('status', 'message');
+
+                let { status, message } = res.body;
+                status.should.be.a('number');
+                message.should.be.a('string').that.equals(`Succesfully deleted meal ${meal_id}`);
                 
                 done();
             });
