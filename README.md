@@ -36,7 +36,7 @@ npm install
 
 #### 4. Change the .env variables to your own database and settings
 
-##### To run the application use this command
+#### 5. To run the application use this command
 ```
 npm run start
 ```
